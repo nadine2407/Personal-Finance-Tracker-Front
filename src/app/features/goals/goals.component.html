@@ -1,0 +1,137 @@
+<app-page-header titleKey="goals.title">
+  <button class="btn btn-primary" (click)="openForm()">
+    <i class="bi bi-plus-lg me-1"></i>{{ 'goals.add' | translate }}
+  </button>
+</app-page-header>
+
+@if (store.loading()) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (store.goals().length === 0) {
+  <app-empty-state messageKey="goals.empty">
+    <button class="btn btn-primary" (click)="openForm()">{{ 'goals.add' | translate }}</button>
+  </app-empty-state>
+} @else {
+  <div class="row g-3">
+    @for (goal of store.goals(); track goal.id) {
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100" [class.border-success]="goal.completed">
+          <div class="card-body">
+            <div class="d-flex align-items-start mb-2">
+              <div class="flex-grow-1">
+                <h6 class="card-title mb-0">{{ goal.name }}</h6>
+                @if (goal.completed) {
+                  <span class="badge bg-success">✓ {{ 'goals.completed' | translate }}</span>
+                } @else if (goal.deadline) {
+                  @if (daysRemaining(goal.deadline); as days) {
+                    <small [class.text-danger]="days < 0" class="text-muted">
+                      {{ days < 0 ? ('goals.overdue' | translate) : (days + ' ' + ('goals.days_remaining' | translate)) }}
+                    </small>
+                  }
+                }
+              </div>
+              <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-outline-secondary" (click)="openForm(goal)"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(goal)"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+            @if (goal.description) {
+              <p class="text-muted small mb-2">{{ goal.description }}</p>
+            }
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="fw-bold">{{ goal.currentAmount | currencyFormat }}</span>
+              <span class="text-muted">/ {{ goal.targetAmount | currencyFormat }}</span>
+            </div>
+            <div class="progress mb-1" style="height:8px">
+              <div class="progress-bar" [class.bg-success]="goal.completed"
+                   [style.width.%]="goal.progressPercent" role="progressbar"></div>
+            </div>
+            <div class="d-flex justify-content-between small text-muted mb-2">
+              <span>{{ goal.progressPercent | number:'1.0-0' }}%</span>
+              @if (!goal.completed) {
+                <span>{{ 'goals.remaining' | translate }}: {{ goal.remainingAmount | currencyFormat }}</span>
+              }
+            </div>
+            @if (!goal.completed) {
+              <button class="btn btn-sm btn-outline-primary w-100" (click)="openDeposit(goal)">
+                <i class="bi bi-plus-circle me-1"></i>{{ 'goals.deposit' | translate }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+@if (showFormModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editingGoal() ? ('goals.edit' | translate) : ('goals.add' | translate) }}</h5>
+          <button class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="form" class="row g-3">
+            <div class="col-12">
+              <label class="form-label">{{ 'common.name' | translate }}</label>
+              <input class="form-control" formControlName="name" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ 'goals.target_amount' | translate }}</label>
+              <input class="form-control" type="number" formControlName="targetAmount" min="0.01" step="0.01" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ 'goals.deadline' | translate }}</label>
+              <input class="form-control" type="date" formControlName="deadline" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ 'common.description' | translate }}</label>
+              <textarea class="form-control" formControlName="description" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-primary" (click)="submitForm()" [disabled]="form.invalid">{{ 'common.save' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDepositModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ 'goals.deposit' | translate }}</h5>
+          <button class="btn-close" (click)="showDepositModal.set(false)"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">{{ 'common.amount' | translate }}</label>
+          <input class="form-control" type="number" [value]="depositAmount()" (input)="depositAmount.set(+$any($event.target).value)" min="0.01" step="0.01" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="showDepositModal.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-primary btn-sm" (click)="submitDeposit()" [disabled]="depositAmount() <= 0">{{ 'common.save' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showConfirmModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">{{ 'common.confirm_delete' | translate }}</h5></div>
+        <div class="modal-body">{{ 'common.confirm_delete_msg' | translate }}</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="showConfirmModal.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-danger btn-sm" (click)="deleteConfirmed()">{{ 'common.delete' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
