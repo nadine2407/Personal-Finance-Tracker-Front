@@ -1,42 +1,47 @@
 import { Routes } from '@angular/router';
+import { ShellComponent } from './layout/shell/shell.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  {
-    path: 'auth',
-    loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
-  },
   {
     path: '',
+    component: ShellComponent,
     canActivate: [authGuard],
-    loadComponent: () => import('./layout/shell.component').then(m => m.ShellComponent),
     children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'dashboard',
-        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
       },
       {
         path: 'transactions',
-        loadComponent: () => import('./features/transactions/transactions.component').then(m => m.TransactionsComponent)
-      },
-      {
-        path: 'accounts',
-        loadComponent: () => import('./features/accounts/accounts.component').then(m => m.AccountsComponent)
-      },
-      {
-        path: 'budgets',
-        loadComponent: () => import('./features/budgets/budgets.component').then(m => m.BudgetsComponent)
-      },
-      {
-        path: 'goals',
-        loadComponent: () => import('./features/goals/goals.component').then(m => m.GoalsComponent)
+        loadChildren: () => import('./features/transactions/transactions.routes').then(m => m.TRANSACTIONS_ROUTES)
       },
       {
         path: 'categories',
-        loadComponent: () => import('./features/categories/categories.component').then(m => m.CategoriesComponent)
+        loadChildren: () => import('./features/categories/categories.routes').then(m => m.CATEGORIES_ROUTES)
+      },
+      {
+        path: 'goals',
+        loadChildren: () => import('./features/goals/goals.routes').then(m => m.GOALS_ROUTES)
+      },
+      {
+        path: 'budgets',
+        loadChildren: () => import('./features/budgets/budgets.routes').then(m => m.BUDGETS_ROUTES)
+      },
+      {
+        path: 'accounts',
+        loadChildren: () => import('./features/accounts/accounts.routes').then(m => m.ACCOUNTS_ROUTES)
       }
     ]
   },
-  { path: '**', redirectTo: 'dashboard' }
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
+  },
+  { path: '**', redirectTo: '' }
 ];

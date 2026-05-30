@@ -1,11 +1,181 @@
-@import 'bootstrap/scss/bootstrap';
-@import 'bootstrap-icons/font/bootstrap-icons.css';
+/* ─── Lumen Design Tokens ──────────────────────────────────────────────── */
+:root {
+  /* Background layers */
+  --bg:       #f4f1ec;
+  --paper:    #ffffff;
 
-* {
-  box-sizing: border-box;
+  /* Text */
+  --ink:      oklch(0.20 0.025 280);
+  --ink-2:    oklch(0.34 0.02 280);
+  --muted:    oklch(0.55 0.018 280);
+  --faint:    oklch(0.78 0.012 280);
+
+  /* Borders */
+  --line:     oklch(0.91 0.012 280);
+  --line-2:   oklch(0.86 0.014 280);
+
+  /* Brand */
+  --primary:       oklch(0.42 0.16 282);
+  --primary-2:     oklch(0.52 0.18 285);
+  --primary-tint:  oklch(0.94 0.04 285);
+
+  /* Semantic */
+  --pos:  oklch(0.52 0.12 155);   /* vert */
+  --neg:  oklch(0.55 0.17 25);    /* rouge */
+  --warn: oklch(0.65 0.14 70);    /* orange */
+
+  /* Typography */
+  --serif: "Instrument Serif", "Times New Roman", serif;
+  --sans:  "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono:  "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f8f9fa;
+/* ─── Reset & Base ─────────────────────────────────────────────────────── */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+
+::selection {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ─── Typography helpers ───────────────────────────────────────────────── */
+.text-serif  { font-family: var(--serif) !important; }
+.text-mono   { font-family: var(--mono) !important; }
+.text-muted  { color: var(--muted) !important; }
+.text-pos    { color: var(--pos) !important; }
+.text-neg    { color: var(--neg) !important; }
+
+/* ─── Lumen card primitive ─────────────────────────────────────────────── */
+.lumen-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+/* ─── Section label (uppercase mono) ──────────────────────────────────── */
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ─── Form grid (dialogs) ──────────────────────────────────────────────── */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  min-width: 360px;
+
+  mat-form-field { width: 100%; }
+}
+
+/* ─── Angular Material overrides ───────────────────────────────────────── */
+
+/* Primary color → Lumen indigo */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-flat-button.mat-primary,
+.mat-mdc-fab.mat-primary {
+  --mdc-filled-button-container-color: var(--primary);
+  --mdc-filled-button-label-text-color: #fff;
+}
+
+.mat-mdc-outlined-button.mat-primary {
+  --mdc-outlined-button-label-text-color: var(--primary);
+  --mdc-outlined-button-outline-color: var(--primary);
+}
+
+/* Card override */
+mat-card.mat-mdc-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+
+/* Table */
+.mat-mdc-table {
+  background: var(--paper) !important;
+  font-family: var(--sans);
+}
+
+.mat-mdc-header-cell {
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted) !important;
+  background: var(--bg) !important;
+}
+
+.mat-mdc-row:hover {
+  background: oklch(0.97 0.005 280) !important;
+}
+
+/* Paginator */
+.mat-mdc-paginator {
+  background: var(--paper) !important;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono) !important;
+  font-size: 12px;
+}
+
+/* Progress bar */
+.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: var(--primary);
+  --mdc-linear-progress-track-color: var(--line);
+  border-radius: 4px;
+  height: 6px;
+}
+
+/* Form fields */
+.mat-mdc-form-field {
+  font-family: var(--sans);
+}
+
+/* Snackbar */
+.snack-success {
+  --mdc-snackbar-container-color: var(--pos);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+.snack-error {
+  --mdc-snackbar-container-color: var(--neg);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+/* Chips */
+.mat-mdc-chip.mat-primary {
+  --mdc-chip-label-text-color: var(--primary);
+  background-color: var(--primary-tint) !important;
+}
+
+/* Spinner */
+.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: var(--primary);
+}
+
+/* Expansion panel */
+.mat-expansion-panel {
+  background: var(--paper) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+/* Dialog */
+.mat-mdc-dialog-surface {
+  border-radius: 12px !important;
 }
