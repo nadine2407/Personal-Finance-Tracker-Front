@@ -8,34 +8,35 @@ export const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
   {
-    path: 'dashboard',
+    path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
-  },
-  {
-    path: 'transactions',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/transactions/transactions.component').then(m => m.TransactionsComponent)
-  },
-  {
-    path: 'accounts',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/accounts/accounts.component').then(m => m.AccountsComponent)
-  },
-  {
-    path: 'budgets',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/budgets/budgets.component').then(m => m.BudgetsComponent)
-  },
-  {
-    path: 'goals',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/goals/goals.component').then(m => m.GoalsComponent)
-  },
-  {
-    path: 'categories',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/categories/categories.component').then(m => m.CategoriesComponent)
+    loadComponent: () => import('./layout/shell.component').then(m => m.ShellComponent),
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'transactions',
+        loadComponent: () => import('./features/transactions/transactions.component').then(m => m.TransactionsComponent)
+      },
+      {
+        path: 'accounts',
+        loadComponent: () => import('./features/accounts/accounts.component').then(m => m.AccountsComponent)
+      },
+      {
+        path: 'budgets',
+        loadComponent: () => import('./features/budgets/budgets.component').then(m => m.BudgetsComponent)
+      },
+      {
+        path: 'goals',
+        loadComponent: () => import('./features/goals/goals.component').then(m => m.GoalsComponent)
+      },
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/categories/categories.component').then(m => m.CategoriesComponent)
+      }
+    ]
   },
   { path: '**', redirectTo: 'dashboard' }
 ];
