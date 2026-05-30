@@ -1,0 +1,135 @@
+.filter-panel {
+  margin-bottom: 20px;
+  background: var(--paper);
+
+  ::ng-deep .mat-expansion-panel-header {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: var(--ink-2);
+  }
+
+  mat-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sans);
+    font-size: 13px;
+  }
+}
+
+.filter-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0 16px;
+  padding-top: 4px;
+}
+
+.filter-flags {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+  padding-bottom: 1.34375em;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  margin-top: 80px;
+}
+
+.table-card {
+  overflow: hidden;
+  padding: 0 !important;
+
+  ::ng-deep mat-card-content {
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.transactions-table {
+  width: 100%;
+}
+
+/* Type badges */
+.type-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+
+  &.type-income {
+    background: oklch(0.95 0.04 155);
+    color: var(--pos);
+    border: 1px solid oklch(0.88 0.07 155);
+  }
+
+  &.type-expense {
+    background: oklch(0.97 0.03 25);
+    color: var(--neg);
+    border: 1px solid oklch(0.90 0.05 25);
+  }
+}
+
+/* Category pill */
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-family: var(--sans);
+  color: white;
+  opacity: 0.9;
+}
+
+/* Form dialog flags */
+.flags-row {
+  display: flex;
+  gap: 24px;
+  padding: 4px 0 8px;
+}
+
+/* Flags column */
+.flags-cell {
+  white-space: nowrap;
+  padding: 0 4px !important;
+  width: 56px;
+}
+
+.flag {
+  font-size: 14px;
+  cursor: default;
+  display: inline-block;
+
+  &--recurring { margin-right: 2px; }
+}
+
+/* Amount colors */
+.amount-income {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--pos);
+}
+
+.amount-expense {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--neg);
+}

@@ -1,229 +1,175 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
-import { TranslatePipe } from '@ngx-translate/core';
-import { TransactionService, Transaction } from '../../core/services/transaction.service';
-import { CategoryService, Category } from '../../core/services/category.service';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
+import { TransactionsStore } from './transactions.store';
+import { CategoriesStore } from '../categories/categories.store';
+import { AccountsStore } from '../accounts/accounts.store';
+import { Transaction, RecurrenceFrequency } from '../../shared/models/transaction.model';
 
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [ReactiveFormsModule, TranslatePipe, CurrencyPipe, DatePipe, NgClass],
-  template: `
-    <div class="container-fluid">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{ 'nav.transactions' | translate }}</h2>
-        <button class="btn btn-primary" (click)="openForm()">
-          <i class="bi bi-plus-lg me-1"></i>{{ 'common.add' | translate }}
-        </button>
-      </div>
-
-      <!-- Filtres -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-          <div class="row g-2 align-items-end">
-            <div class="col-md-3">
-              <label class="form-label small">Type</label>
-              <select class="form-select form-select-sm" (change)="onTypeFilter($event)">
-                <option value="">Tous</option>
-                <option value="INCOME">Revenus</option>
-                <option value="EXPENSE">Dépenses</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label small">Du</label>
-              <input type="date" class="form-control form-control-sm" #fromDate (change)="onDateFilter(fromDate.value, toDate.value)">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label small">Au</label>
-              <input type="date" class="form-control form-control-sm" #toDate (change)="onDateFilter(fromDate.value, toDate.value)">
-            </div>
-            <div class="col-md-3">
-              <button class="btn btn-outline-secondary btn-sm w-100" (click)="resetFilter()">
-                <i class="bi bi-x-circle me-1"></i>Réinitialiser
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Formulaire -->
-      @if (showForm()) {
-        <div class="card border-0 shadow-sm mb-4">
-          <div class="card-header bg-white">
-            <h6 class="mb-0">{{ editId() ? 'Modifier' : 'Nouvelle transaction' }}</h6>
-          </div>
-          <div class="card-body">
-            <form [formGroup]="form" (ngSubmit)="onSubmit()">
-              <div class="row g-3">
-                <div class="col-md-3">
-                  <label class="form-label small">Montant</label>
-                  <input type="number" class="form-control form-control-sm" formControlName="amount" step="0.01" min="0.01">
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label small">Date</label>
-                  <input type="date" class="form-control form-control-sm" formControlName="date">
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label small">Catégorie</label>
-                  <select class="form-select form-select-sm" formControlName="categoryId">
-                    <option value="">-- Choisir --</option>
-                    @for (cat of categories(); track cat.id) {
-                      <option [value]="cat.id">{{ cat.name }} ({{ cat.type === 'INCOME' ? 'Revenu' : 'Dépense' }})</option>
-                    }
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label small">Description</label>
-                  <input type="text" class="form-control form-control-sm" formControlName="description">
-                </div>
-              </div>
-              <div class="d-flex gap-2 mt-3">
-                <button type="submit" class="btn btn-primary btn-sm" [disabled]="form.invalid">
-                  {{ 'common.save' | translate }}
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeForm()">
-                  {{ 'common.cancel' | translate }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      }
-
-      <!-- Liste -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-          @if (loading()) {
-            <div class="text-center py-4"><span class="spinner-border text-primary"></span></div>
-          } @else if (transactions().length === 0) {
-            <p class="text-muted text-center py-4">Aucune transaction trouvée.</p>
-          } @else {
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Catégorie</th>
-                    <th>Type</th>
-                    <th class="text-end">Montant</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (t of transactions(); track t.id) {
-                    <tr>
-                      <td>{{ t.date | date:'dd/MM/yyyy' }}</td>
-                      <td>{{ t.description || '—' }}</td>
-                      <td><span class="badge bg-secondary">{{ t.categoryName }}</span></td>
-                      <td>
-                        <span class="badge" [ngClass]="t.categoryType === 'INCOME' ? 'bg-success' : 'bg-danger'">
-                          {{ t.categoryType === 'INCOME' ? 'Revenu' : 'Dépense' }}
-                        </span>
-                      </td>
-                      <td class="text-end fw-bold"
-                          [ngClass]="t.categoryType === 'INCOME' ? 'text-success' : 'text-danger'">
-                        {{ t.categoryType === 'INCOME' ? '+' : '-' }}{{ t.amount | currency:'EUR':'symbol':'1.2-2' }}
-                      </td>
-                      <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary me-1" (click)="openForm(t)">
-                          <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" (click)="onDelete(t.id)">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
-  `
+  imports: [
+    ReactiveFormsModule,
+    DecimalPipe,
+    TranslateModule,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    CurrencyFormatPipe
+  ],
+  templateUrl: './transactions.component.html',
+  styleUrl: './transactions.component.scss'
 })
 export class TransactionsComponent implements OnInit {
-  private transactionService = inject(TransactionService);
-  private categoryService = inject(CategoryService);
+  store = inject(TransactionsStore);
+  categoriesStore = inject(CategoriesStore);
+  accountsStore = inject(AccountsStore);
   private fb = inject(FormBuilder);
 
-  transactions = signal<Transaction[]>([]);
-  categories = signal<Category[]>([]);
-  loading = signal(true);
-  showForm = signal(false);
-  editId = signal<number | null>(null);
+  showFormModal = signal(false);
+  editingTx = signal<Transaction | null>(null);
+  showConfirmModal = signal(false);
+  deletingTx = signal<Transaction | null>(null);
+  showFilters = signal(false);
 
-  form = this.fb.group({
-    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
-    date: ['', Validators.required],
-    categoryId: ['', Validators.required],
-    description: ['']
+  filterForm = this.fb.group({
+    search: [''],
+    type: [''],
+    categoryId: [''],
+    startDate: [''],
+    endDate: [''],
+    recurring: [false],
+    split: [false]
   });
 
-  ngOnInit() {
-    this.loadTransactions();
-    this.categoryService.getAll().subscribe(res => this.categories.set(res.data));
-  }
+  form = this.fb.group({
+    type: ['INCOME', Validators.required],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    transactionDate: ['', Validators.required],
+    categoryId: [null as number | null, Validators.required],
+    accountId: [null as number | null],
+    description: [''],
+    notes: [''],
+    recurring: [false],
+    split: [false],
+    recurrenceFrequency: [null as RecurrenceFrequency | null]
+  });
 
-  loadTransactions() {
-    this.loading.set(true);
-    this.transactionService.getAll().subscribe({
-      next: res => { this.transactions.set(res.data); this.loading.set(false); },
-      error: () => this.loading.set(false)
-    });
-  }
+  readonly frequencies: RecurrenceFrequency[] = ['DAILY' as any, 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
 
-  onTypeFilter(event: Event) {
-    const type = (event.target as HTMLSelectElement).value;
-    if (!type) { this.loadTransactions(); return; }
-    this.transactionService.filter(type).subscribe(res => this.transactions.set(res.data));
-  }
+  get isRecurring() { return this.form.get('recurring')?.value; }
 
-  onDateFilter(from: string, to: string) {
-    if (!from || !to) return;
-    this.transactionService.filter(undefined, from, to).subscribe(res => this.transactions.set(res.data));
-  }
-
-  resetFilter() {
-    this.loadTransactions();
-  }
-
-  openForm(t?: Transaction) {
-    this.showForm.set(true);
-    if (t) {
-      this.editId.set(t.id);
-      this.form.setValue({ amount: t.amount, date: t.date, categoryId: String(t.categoryId), description: t.description || '' });
-    } else {
-      this.editId.set(null);
-      this.form.reset();
+  ngOnInit(): void {
+    this.store.load();
+    if (this.categoriesStore.categories().length === 0) {
+      this.categoriesStore.load();
+    }
+    if (this.accountsStore.accounts().length === 0) {
+      this.accountsStore.load();
     }
   }
 
-  closeForm() {
-    this.showForm.set(false);
-    this.editId.set(null);
-    this.form.reset();
+  applyFilter(): void {
+    const { search, type, categoryId, startDate, endDate, recurring, split } = this.filterForm.value;
+    this.store.applyFilter({
+      search: search || undefined,
+      type: (type as any) || undefined,
+      categoryId: categoryId ? +categoryId : undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      recurring: recurring || undefined,
+      split: split || undefined
+    });
   }
 
-  onSubmit() {
+  resetFilter(): void {
+    this.filterForm.reset({ recurring: false, split: false });
+    this.store.applyFilter({});
+  }
+
+  onPageChange(page: number): void {
+    this.store.setPage(page);
+  }
+
+  getPages(): number[] {
+    const total = this.store.page().totalPages;
+    return Array.from({ length: total }, (_, i) => i);
+  }
+
+  openForm(tx?: Transaction): void {
+    this.editingTx.set(tx ?? null);
+    if (tx) {
+      this.form.patchValue({
+        type: tx.type,
+        amount: tx.amount,
+        transactionDate: tx.transactionDate,
+        categoryId: tx.category.id,
+        accountId: tx.accountId ?? null,
+        description: tx.description ?? '',
+        notes: tx.notes ?? '',
+        recurring: tx.recurring ?? false,
+        split: tx.split ?? false,
+        recurrenceFrequency: tx.recurrenceFrequency ?? null
+      });
+    } else {
+      this.form.reset({
+        type: 'INCOME',
+        amount: null,
+        transactionDate: new Date().toISOString().split('T')[0],
+        categoryId: null,
+        accountId: null,
+        description: '',
+        notes: '',
+        recurring: false,
+        split: false,
+        recurrenceFrequency: null
+      });
+    }
+    this.showFormModal.set(true);
+  }
+
+  closeModal(): void {
+    this.showFormModal.set(false);
+    this.editingTx.set(null);
+  }
+
+  submitForm(): void {
     if (this.form.invalid) return;
-    const payload = {
-      amount: this.form.value.amount!,
-      date: this.form.value.date!,
-      categoryId: Number(this.form.value.categoryId),
-      description: this.form.value.description || ''
+    const { type, amount, transactionDate, categoryId, accountId, description, notes, recurring, split, recurrenceFrequency } = this.form.getRawValue();
+    const request = {
+      type: type!,
+      amount: amount!,
+      transactionDate: transactionDate!,
+      categoryId: categoryId!,
+      accountId: accountId ?? null,
+      description: description || null,
+      notes: notes || null,
+      recurring: recurring ?? false,
+      split: split ?? false,
+      recurrenceFrequency: recurring ? recurrenceFrequency : null
     };
-    const id = this.editId();
-    const req = id
-      ? this.transactionService.update(id, payload)
-      : this.transactionService.create(payload);
-    req.subscribe(() => { this.closeForm(); this.loadTransactions(); });
+    const tx = this.editingTx();
+    if (tx) {
+      this.store.update(tx.id, request as any);
+    } else {
+      this.store.create(request as any);
+    }
+    this.closeModal();
   }
 
-  onDelete(id: number) {
-    this.transactionService.delete(id).subscribe(() => this.loadTransactions());
+  confirmDelete(tx: Transaction): void {
+    this.deletingTx.set(tx);
+    this.showConfirmModal.set(true);
+  }
+
+  deleteConfirmed(): void {
+    const tx = this.deletingTx();
+    if (tx) this.store.delete(tx.id);
+    this.showConfirmModal.set(false);
+    this.deletingTx.set(null);
   }
 }
