@@ -1,0 +1,88 @@
+<app-page-header titleKey="categories.title">
+  <button class="btn btn-primary" (click)="openForm()">
+    <i class="bi bi-plus-lg me-1"></i>{{ 'categories.add' | translate }}
+  </button>
+</app-page-header>
+
+@if (store.loading()) {
+  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+} @else if (store.categories().length === 0) {
+  <app-empty-state messageKey="categories.empty">
+    <button class="btn btn-primary" (click)="openForm()">{{ 'categories.add' | translate }}</button>
+  </app-empty-state>
+} @else {
+  <div class="row g-3">
+    @for (category of store.categories(); track category.id) {
+      <div class="col-md-4 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white"
+                 [style.background]="category.color ?? '#1a237e'" style="width:40px;height:40px;font-size:1.1rem">
+              {{ category.icon ?? '•' }}
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">{{ category.name }}</div>
+              @if (category.isDefault) {
+                <span class="badge bg-secondary">{{ 'categories.default' | translate }}</span>
+              }
+            </div>
+            <div class="d-flex gap-1">
+              <button class="btn btn-sm btn-outline-secondary" (click)="openForm(category)"><i class="bi bi-pencil"></i></button>
+              @if (!category.isDefault) {
+                <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(category)"><i class="bi bi-trash"></i></button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+@if (showFormModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editingCat() ? ('categories.edit' | translate) : ('categories.add' | translate) }}</h5>
+          <button class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="form" class="row g-3">
+            <div class="col-12">
+              <label class="form-label">{{ 'common.name' | translate }}</label>
+              <input class="form-control" formControlName="name" />
+            </div>
+            <div class="col-6">
+              <label class="form-label">{{ 'categories.icon' | translate }}</label>
+              <input class="form-control" formControlName="icon" placeholder="🍔" />
+            </div>
+            <div class="col-6">
+              <label class="form-label">{{ 'categories.color' | translate }}</label>
+              <input class="form-control form-control-color w-100" type="color" formControlName="color" />
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-primary" (click)="submitForm()" [disabled]="form.invalid">{{ 'common.save' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showConfirmModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">{{ 'common.confirm_delete' | translate }}</h5></div>
+        <div class="modal-body">{{ 'common.confirm_delete_msg' | translate }}</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="showConfirmModal.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-danger btn-sm" (click)="deleteConfirmed()">{{ 'common.delete' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

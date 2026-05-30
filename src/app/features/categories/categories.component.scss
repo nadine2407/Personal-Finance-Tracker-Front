@@ -1,0 +1,73 @@
+.loading-center {
+  display: flex;
+  justify-content: center;
+  margin-top: 80px;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.category-card {
+  padding: 0 !important;
+
+  ::ng-deep mat-card-content {
+    padding: 16px 18px 12px;
+  }
+
+  ::ng-deep mat-card-actions {
+    padding: 0 12px 12px;
+    border-top: 1px solid var(--line);
+    margin-top: 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+  }
+}
+
+.default-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  background: var(--primary-tint);
+  color: var(--primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid oklch(0.86 0.06 285);
+  width: fit-content;
+  text-transform: uppercase;
+}
