@@ -1,144 +1,124 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
-import { TranslatePipe } from '@ngx-translate/core';
-import { DashboardService, DashboardData } from '../../core/services/dashboard.service';
+import { Component, inject, OnInit, computed } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { DecimalPipe, NgClass } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartData, ChartOptions } from 'chart.js';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
+import { DashboardStore } from './dashboard.store';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [TranslatePipe, CurrencyPipe, DatePipe, NgClass],
-  template: `
-    <div class="container-fluid">
-      <h2 class="mb-4">{{ 'nav.dashboard' | translate }}</h2>
-
-      @if (loading()) {
-        <div class="text-center py-5">
-          <span class="spinner-border text-primary"></span>
-        </div>
-      }
-
-      @if (data()) {
-        <!-- Cartes résumé -->
-        <div class="row g-3 mb-4">
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-              <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                  <i class="bi bi-arrow-down-circle-fill text-success fs-4"></i>
-                </div>
-                <div>
-                  <div class="text-muted small">Revenus totaux</div>
-                  <div class="fs-5 fw-bold text-success">
-                    {{ data()!.totalIncome | currency:'EUR':'symbol':'1.2-2' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-              <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-circle bg-danger bg-opacity-10 p-3">
-                  <i class="bi bi-arrow-up-circle-fill text-danger fs-4"></i>
-                </div>
-                <div>
-                  <div class="text-muted small">Dépenses totales</div>
-                  <div class="fs-5 fw-bold text-danger">
-                    {{ data()!.totalExpenses | currency:'EUR':'symbol':'1.2-2' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-              <div class="card-body d-flex align-items-center gap-3">
-                <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                  <i class="bi bi-wallet2 text-primary fs-4"></i>
-                </div>
-                <div>
-                  <div class="text-muted small">Solde</div>
-                  <div class="fs-5 fw-bold"
-                       [ngClass]="data()!.balance >= 0 ? 'text-primary' : 'text-danger'">
-                    {{ data()!.balance | currency:'EUR':'symbol':'1.2-2' }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats secondaires -->
-        <div class="row g-3 mb-4">
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center py-3">
-              <div class="fs-3 fw-bold text-primary">{{ data()!.totalTransactions }}</div>
-              <div class="text-muted small">Transactions</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center py-3">
-              <div class="fs-3 fw-bold text-warning">{{ data()!.totalBudgets }}</div>
-              <div class="text-muted small">Budgets</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center py-3">
-              <div class="fs-3 fw-bold text-success">{{ data()!.totalGoals }}</div>
-              <div class="text-muted small">Objectifs</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Transactions récentes -->
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white border-0 pt-3">
-            <h5 class="mb-0">Transactions récentes</h5>
-          </div>
-          <div class="card-body p-0">
-            @if (data()!.recentTransactions.length === 0) {
-              <p class="text-muted text-center py-4">Aucune transaction pour le moment.</p>
-            } @else {
-              <ul class="list-group list-group-flush">
-                @for (t of data()!.recentTransactions; track t.id) {
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="bi"
-                         [ngClass]="t.categoryType === 'INCOME' ? 'bi-arrow-down-circle text-success' : 'bi-arrow-up-circle text-danger'">
-                      </i>
-                      <div>
-                        <div class="fw-medium">{{ t.description || t.categoryName }}</div>
-                        <div class="text-muted small">{{ t.date | date:'dd/MM/yyyy' }}</div>
-                      </div>
-                    </div>
-                    <span [ngClass]="t.categoryType === 'INCOME' ? 'text-success' : 'text-danger'" class="fw-bold">
-                      {{ t.categoryType === 'INCOME' ? '+' : '-' }}{{ t.amount | currency:'EUR':'symbol':'1.2-2' }}
-                    </span>
-                  </li>
-                }
-              </ul>
-            }
-          </div>
-        </div>
-      }
-    </div>
-  `
+  imports: [
+    RouterModule,
+    ReactiveFormsModule,
+    DecimalPipe,
+    NgClass,
+    TranslateModule,
+    BaseChartDirective,
+    PageHeaderComponent,
+    StatCardComponent,
+    EmptyStateComponent,
+    CurrencyFormatPipe
+  ],
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-  private dashboardService = inject(DashboardService);
+  store = inject(DashboardStore);
+  private translate = inject(TranslateService);
+  private fb = inject(FormBuilder);
 
-  data = signal<DashboardData | null>(null);
-  loading = signal(true);
+  periodForm = this.fb.group({
+    year: [new Date().getFullYear()],
+    month: [new Date().getMonth() + 1]
+  });
 
-  ngOnInit() {
-    this.dashboardService.getSummary().subscribe({
-      next: res => {
-        this.data.set(res.data);
-        this.loading.set(false);
+  years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  months = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  barChartData = computed<ChartData<'bar'>>(() => {
+    const chart = this.store.monthlyChart();
+    if (!chart) return { labels: [], datasets: [] };
+
+    return {
+      labels: chart.data.map(d => this.translate.instant(`dashboard.months_short.${d.month}`)),
+      datasets: [
+        {
+          label: this.translate.instant('transactions.type_income'),
+          data: chart.data.map(d => d.income),
+          backgroundColor: 'oklch(0.52 0.12 155 / 0.75)',
+          borderColor: 'oklch(0.52 0.12 155)',
+          borderWidth: 1,
+          borderRadius: 3
+        },
+        {
+          label: this.translate.instant('transactions.type_expense'),
+          data: chart.data.map(d => d.expenses),
+          backgroundColor: 'oklch(0.55 0.17 25 / 0.75)',
+          borderColor: 'oklch(0.55 0.17 25)',
+          borderWidth: 1,
+          borderRadius: 3
+        }
+      ]
+    };
+  });
+
+  doughnutData = computed<ChartData<'doughnut'>>(() => {
+    const summary = this.store.summary();
+    if (!summary || summary.categoryBreakdown.length === 0) {
+      return { labels: [], datasets: [{ data: [] }] };
+    }
+    return {
+      labels: summary.categoryBreakdown.map(c => c.name),
+      datasets: [{
+        data: summary.categoryBreakdown.map(c => c.amount),
+        backgroundColor: summary.categoryBreakdown.map(c => c.color ?? 'oklch(0.42 0.16 282)'),
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    };
+  });
+
+  barOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top', labels: { font: { family: 'Geist Mono', size: 11 }, boxWidth: 10 } }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: 'oklch(0.91 0.012 280)' },
+        ticks: { font: { family: 'Geist Mono', size: 10 } }
       },
-      error: () => this.loading.set(false)
-    });
+      x: {
+        grid: { display: false },
+        ticks: { font: { family: 'Geist Mono', size: 10 } }
+      }
+    }
+  };
+
+  doughnutOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    cutout: '68%',
+    plugins: {
+      legend: { position: 'right', labels: { font: { family: 'Geist Mono', size: 11 }, boxWidth: 10 } }
+    }
+  };
+
+  ngOnInit(): void {
+    this.store.load();
+  }
+
+  applyPeriod(): void {
+    const { year, month } = this.periodForm.value;
+    if (year && month) {
+      this.store.setPeriod(year, month);
+    }
   }
 }

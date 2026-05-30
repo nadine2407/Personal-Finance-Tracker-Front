@@ -1,0 +1,227 @@
+/* ─── Period selector ─────────────────────────────────────────────────── */
+.period-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.period-select {
+  width: 140px;
+}
+
+/* ─── Loading ─────────────────────────────────────────────────────────── */
+.loading-center {
+  display: flex;
+  justify-content: center;
+  margin-top: 80px;
+}
+
+/* ─── Layout ──────────────────────────────────────────────────────────── */
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ─── Stat cards ──────────────────────────────────────────────────────── */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Charts row ──────────────────────────────────────────────────────── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  padding: 0 !important;
+
+  ::ng-deep mat-card-header {
+    padding: 16px 20px 0;
+  }
+
+  ::ng-deep .mat-mdc-card-header-text {
+    margin: 0;
+  }
+
+  ::ng-deep mat-card-title {
+    font-family: var(--mono) !important;
+    font-size: 10px !important;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted) !important;
+  }
+
+  ::ng-deep mat-card-content {
+    padding: 12px 20px 20px;
+  }
+
+  &--wide canvas {
+    max-height: 280px;
+  }
+
+  canvas {
+    max-height: 220px;
+  }
+}
+
+/* ─── Category breakdown ──────────────────────────────────────────────── */
+.breakdown-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line-2);
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.breakdown-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.breakdown-name  { flex: 1; color: var(--ink-2); }
+.breakdown-pct   { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 36px; text-align: right; }
+.breakdown-amount { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink); min-width: 80px; text-align: right; }
+
+/* ─── Recent transactions card ────────────────────────────────────────── */
+.recent-card {
+  padding: 0 !important;
+}
+
+.recent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--line);
+
+  &__left {
+    .section-label { margin: 0; }
+  }
+
+  &__link {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: none;
+    letter-spacing: 0.3px;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-item {
+  display: grid;
+  grid-template-columns: 36px 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.1s;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover { background: oklch(0.97 0.005 280); }
+
+  /* Category icon circle */
+  &__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  /* Description + meta */
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__desc {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+
+  /* Type badge */
+  &__type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    &.type-income {
+      background: oklch(0.95 0.04 155);
+      color: var(--pos);
+      border: 1px solid oklch(0.88 0.07 155);
+    }
+    &.type-expense {
+      background: oklch(0.97 0.03 25);
+      color: var(--neg);
+      border: 1px solid oklch(0.90 0.05 25);
+    }
+  }
+
+  /* Amount */
+  &__amount {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &.amount-pos { color: var(--pos); }
+    &.amount-neg { color: var(--neg); }
+  }
+}
