@@ -1,0 +1,37 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card shadow-sm" style="width:100%;max-width:420px">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center mb-4">
+        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:40px;height:40px">L</div>
+        <div><div class="fw-bold">Lumen</div><div class="text-muted small">Personal Finance</div></div>
+      </div>
+      <h4 class="mb-1">{{ 'auth.login_title' | translate }}</h4>
+      <p class="text-muted small mb-3">{{ 'auth.login_subtitle' | translate }}</p>
+      @if (error()) {
+        <div class="alert alert-danger py-2">{{ error()! | translate }}</div>
+      }
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="mb-3">
+          <label class="form-label">{{ 'auth.email' | translate }}</label>
+          <input class="form-control" formControlName="email" type="email" autocomplete="email" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">{{ 'auth.password' | translate }}</label>
+          <div class="input-group">
+            <input class="form-control" formControlName="password"
+                   [type]="hidePassword() ? 'password' : 'text'" autocomplete="current-password" />
+            <button class="btn btn-outline-secondary" type="button" (click)="hidePassword.set(!hidePassword())">
+              <i class="bi" [class.bi-eye]="hidePassword()" [class.bi-eye-slash]="!hidePassword()"></i>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-primary w-100" type="submit" [disabled]="form.invalid || loading()">
+          @if (loading()) { <span class="spinner-border spinner-border-sm me-2"></span> }
+          {{ 'auth.sign_in' | translate }}
+        </button>
+      </form>
+      <p class="text-center mt-3 small">{{ 'auth.no_account' | translate }} <a routerLink="/register">{{ 'auth.register_link' | translate }}</a></p>
+      <div class="text-center mt-2 small text-muted">{{ 'auth.demo_hint' | translate }} <code>demo&#64;lumen.app</code> / <code>demo123</code></div>
+    </div>
+  </div>
+</div>

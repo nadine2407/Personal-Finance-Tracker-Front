@@ -1,0 +1,7 @@
+@use '../login/auth-shared' as *;
+
+.name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
