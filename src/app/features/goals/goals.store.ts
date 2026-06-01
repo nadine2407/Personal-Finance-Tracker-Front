@@ -51,6 +51,16 @@ export class GoalsStore {
     });
   }
 
+  withdraw(id: number, request: DepositRequest): void {
+    this.service.withdraw(id, request).subscribe({
+      next: updated => {
+        this.goals.update(list => list.map(g => g.id === id ? updated : g));
+        this.notification.success('common.success_save');
+      },
+      error: () => this.notification.error('common.error_save')
+    });
+  }
+
   delete(id: number): void {
     this.service.delete(id).subscribe({
       next: () => {

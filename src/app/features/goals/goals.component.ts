@@ -33,6 +33,9 @@ export class GoalsComponent implements OnInit {
   showDepositModal = signal(false);
   depositingGoal = signal<Goal | null>(null);
   depositAmount = signal(0);
+  showWithdrawModal = signal(false);
+  withdrawingGoal = signal<Goal | null>(null);
+  withdrawAmount = signal(0);
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -96,6 +99,21 @@ export class GoalsComponent implements OnInit {
     }
     this.showDepositModal.set(false);
     this.depositingGoal.set(null);
+  }
+
+  openWithdraw(goal: Goal): void {
+    this.withdrawingGoal.set(goal);
+    this.withdrawAmount.set(0);
+    this.showWithdrawModal.set(true);
+  }
+
+  submitWithdraw(): void {
+    const goal = this.withdrawingGoal();
+    if (goal && this.withdrawAmount() > 0) {
+      this.store.withdraw(goal.id, { amount: this.withdrawAmount() });
+    }
+    this.showWithdrawModal.set(false);
+    this.withdrawingGoal.set(null);
   }
 
   confirmDelete(goal: Goal): void {

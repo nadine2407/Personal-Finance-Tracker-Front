@@ -25,6 +25,10 @@ export class GoalsService {
     return this.http.patch<Goal>(`${this.base}/${id}/deposit`, request);
   }
 
+  withdraw(id: number, request: DepositRequest): Observable<Goal> {
+    return this.http.patch<Goal>(`${this.base}/${id}/withdraw`, request);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }

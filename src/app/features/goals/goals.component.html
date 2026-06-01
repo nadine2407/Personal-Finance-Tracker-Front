@@ -52,9 +52,16 @@
               }
             </div>
             @if (!goal.completed) {
-              <button class="btn btn-sm btn-outline-primary w-100" (click)="openDeposit(goal)">
-                <i class="bi bi-plus-circle me-1"></i>{{ 'goals.deposit' | translate }}
-              </button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary flex-fill" (click)="openDeposit(goal)">
+                  <i class="bi bi-plus-circle me-1"></i>{{ 'goals.deposit' | translate }}
+                </button>
+                @if (goal.currentAmount > 0) {
+                  <button class="btn btn-sm btn-outline-warning flex-fill" (click)="openWithdraw(goal)">
+                    <i class="bi bi-dash-circle me-1"></i>{{ 'goals.withdraw' | translate }}
+                  </button>
+                }
+              </div>
             }
           </div>
         </div>
@@ -115,6 +122,30 @@
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" (click)="showDepositModal.set(false)">{{ 'common.cancel' | translate }}</button>
           <button class="btn btn-primary btn-sm" (click)="submitDeposit()" [disabled]="depositAmount() <= 0">{{ 'common.save' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showWithdrawModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ 'goals.withdraw_title' | translate }}</h5>
+          <button class="btn-close" (click)="showWithdrawModal.set(false)"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">{{ 'common.amount' | translate }}</label>
+          <input class="form-control" type="number" [value]="withdrawAmount()" (input)="withdrawAmount.set(+$any($event.target).value)" min="0.01" step="0.01" />
+          @if (withdrawingGoal()) {
+            <small class="text-muted">Max : {{ withdrawingGoal()!.currentAmount | currencyFormat }}</small>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="showWithdrawModal.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-warning btn-sm" (click)="submitWithdraw()" [disabled]="withdrawAmount() <= 0">{{ 'common.save' | translate }}</button>
         </div>
       </div>
     </div>

@@ -220,6 +220,8 @@
     "deposit": "Déposer",
     "deposit_title": "Ajouter un dépôt",
     "deposit_amount": "Montant du dépôt",
+    "withdraw": "Retirer",
+    "withdraw_title": "Retirer des fonds",
     "empty": "Aucun objectif d'épargne",
     "delete_confirm": "Supprimer cet objectif ?",
     "days_remaining": "jours restants",
