@@ -30,6 +30,7 @@ export class ShellComponent {
 
   readonly currentPageLabel = computed(() => {
     const url = this.router.url.split('/')[1] ?? 'dashboard';
+    if (url === 'settings') return this.translate.instant('nav.settings');
     const item = this.navItems.find(n => n.path === '/' + url);
     return item ? this.translate.instant(item.labelKey) : 'Lumen';
   });

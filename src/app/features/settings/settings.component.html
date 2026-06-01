@@ -1,0 +1,84 @@
+<app-page-header titleKey="settings.title"></app-page-header>
+
+<div class="row g-4">
+
+  <!-- Informations du profil -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-person me-2"></i>{{ 'settings.profile_title' | translate }}
+      </div>
+      <div class="card-body">
+        <form [formGroup]="profileForm" class="row g-3">
+          <div class="col-6">
+            <label class="form-label">{{ 'settings.first_name' | translate }}</label>
+            <input class="form-control" formControlName="firstName" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">{{ 'settings.last_name' | translate }}</label>
+            <input class="form-control" formControlName="lastName" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">{{ 'settings.email' | translate }}</label>
+            <input class="form-control" type="email" formControlName="email" />
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary w-100" (click)="submitProfile()"
+                    [disabled]="profileForm.invalid || savingProfile()">
+              @if (savingProfile()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              {{ 'common.save' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modifier le mot de passe -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-lock me-2"></i>{{ 'settings.password_title' | translate }}
+      </div>
+      <div class="card-body">
+        <form [formGroup]="passwordForm" class="row g-3">
+          <div class="col-12">
+            <label class="form-label">{{ 'settings.current_password' | translate }}</label>
+            <div class="input-group">
+              <input class="form-control" [type]="showCurrentPassword() ? 'text' : 'password'" formControlName="currentPassword" />
+              <button class="btn btn-outline-secondary" type="button" (click)="showCurrentPassword.set(!showCurrentPassword())">
+                <i class="bi" [class.bi-eye]="!showCurrentPassword()" [class.bi-eye-slash]="showCurrentPassword()"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">{{ 'settings.new_password' | translate }}</label>
+            <div class="input-group">
+              <input class="form-control" [type]="showNewPassword() ? 'text' : 'password'" formControlName="newPassword" />
+              <button class="btn btn-outline-secondary" type="button" (click)="showNewPassword.set(!showNewPassword())">
+                <i class="bi" [class.bi-eye]="!showNewPassword()" [class.bi-eye-slash]="showNewPassword()"></i>
+              </button>
+            </div>
+            <small class="text-muted">{{ 'settings.password_hint' | translate }}</small>
+          </div>
+          <div class="col-12">
+            <label class="form-label">{{ 'settings.confirm_password' | translate }}</label>
+            <input class="form-control" type="password" formControlName="confirmPassword" />
+          </div>
+          <div class="col-12">
+            <button class="btn btn-warning w-100" (click)="submitPassword()"
+                    [disabled]="passwordForm.invalid || savingPassword()">
+              @if (savingPassword()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              {{ 'settings.update_password' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
