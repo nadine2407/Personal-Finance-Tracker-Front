@@ -42,6 +42,8 @@ export class TransactionsComponent implements OnInit {
     categoryId: [''],
     startDate: [''],
     endDate: [''],
+    minAmount: [null as number | null],
+    maxAmount: [null as number | null],
     recurring: [false],
     split: [false]
   });
@@ -59,7 +61,7 @@ export class TransactionsComponent implements OnInit {
     recurrenceFrequency: [null as RecurrenceFrequency | null]
   });
 
-  readonly frequencies: RecurrenceFrequency[] = ['DAILY' as any, 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
+  readonly frequencies: RecurrenceFrequency[] = ['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
 
   get isRecurring() { return this.form.get('recurring')?.value; }
 
@@ -74,13 +76,15 @@ export class TransactionsComponent implements OnInit {
   }
 
   applyFilter(): void {
-    const { search, type, categoryId, startDate, endDate, recurring, split } = this.filterForm.value;
+    const { search, type, categoryId, startDate, endDate, minAmount, maxAmount, recurring, split } = this.filterForm.value;
     this.store.applyFilter({
       search: search || undefined,
       type: (type as any) || undefined,
       categoryId: categoryId ? +categoryId : undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
+      minAmount: minAmount ?? undefined,
+      maxAmount: maxAmount ?? undefined,
       recurring: recurring || undefined,
       split: split || undefined
     });

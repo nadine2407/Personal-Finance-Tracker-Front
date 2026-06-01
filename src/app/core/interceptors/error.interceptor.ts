@@ -13,6 +13,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.navigate(['/login']);
+      } else if (err.status === 400) {
+        const message = err.error?.message || err.error?.error || 'Données invalides';
+        notification.error(message);
       } else if (err.status === 404) {
         notification.error('common.error_load');
       } else if (err.status >= 500) {

@@ -9,11 +9,6 @@ export class BudgetsService {
   private http = inject(HttpClient);
   private base = `${environment.apiUrl}/budgets`;
 
-  getAll(month: number, year: number): Observable<Budget[]> {
-    const params = new HttpParams().set('month', month).set('year', year);
-    return this.http.get<Budget[]>(this.base, { params });
-  }
-
   getStatus(month: number, year: number): Observable<BudgetPageSummary> {
     const params = new HttpParams().set('month', month).set('year', year);
     return this.http.get<BudgetPageSummary>(`${this.base}/status`, { params });
