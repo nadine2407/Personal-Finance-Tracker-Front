@@ -8,6 +8,8 @@ export interface Account {
   icon: string | null;
   initialBalance: number;
   currentBalance: number;
+  goalAllocatedAmount: number;
+  effectiveBalance: number;
 }
 
 export interface AccountRequest {

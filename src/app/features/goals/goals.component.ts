@@ -6,6 +6,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { GoalsStore } from './goals.store';
+import { AccountsStore } from '../accounts/accounts.store';
 import { Goal } from '../../shared/models/goal.model';
 
 @Component({
@@ -24,6 +25,7 @@ import { Goal } from '../../shared/models/goal.model';
 })
 export class GoalsComponent implements OnInit {
   store = inject(GoalsStore);
+  accountsStore = inject(AccountsStore);
   private fb = inject(FormBuilder);
 
   showFormModal = signal(false);
@@ -33,6 +35,7 @@ export class GoalsComponent implements OnInit {
   showDepositModal = signal(false);
   depositingGoal = signal<Goal | null>(null);
   depositAmount = signal(0);
+  depositAccountId = signal<number | null>(null);
   showWithdrawModal = signal(false);
   withdrawingGoal = signal<Goal | null>(null);
   withdrawAmount = signal(0);
@@ -46,6 +49,7 @@ export class GoalsComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.load();
+    this.accountsStore.load();
   }
 
   openForm(goal?: Goal): void {
@@ -89,13 +93,14 @@ export class GoalsComponent implements OnInit {
   openDeposit(goal: Goal): void {
     this.depositingGoal.set(goal);
     this.depositAmount.set(0);
+    this.depositAccountId.set(goal.linkedAccountId ?? null);
     this.showDepositModal.set(true);
   }
 
   submitDeposit(): void {
     const goal = this.depositingGoal();
     if (goal && this.depositAmount() > 0) {
-      this.store.deposit(goal.id, { amount: this.depositAmount() });
+      this.store.deposit(goal.id, { amount: this.depositAmount(), accountId: this.depositAccountId() });
     }
     this.showDepositModal.set(false);
     this.depositingGoal.set(null);

@@ -116,8 +116,22 @@
           <button class="btn-close" (click)="showDepositModal.set(false)"></button>
         </div>
         <div class="modal-body">
-          <label class="form-label">{{ 'common.amount' | translate }}</label>
-          <input class="form-control" type="number" [value]="depositAmount()" (input)="depositAmount.set(+$any($event.target).value)" min="0.01" step="0.01" />
+          <div class="mb-3">
+            <label class="form-label">{{ 'common.amount' | translate }}</label>
+            <input class="form-control" type="number" [value]="depositAmount()" (input)="depositAmount.set(+$any($event.target).value)" min="0.01" step="0.01" />
+          </div>
+          <div>
+            <label class="form-label">{{ 'goals.linked_account' | translate }}</label>
+            <select class="form-select form-select-sm"
+                    [value]="depositAccountId() ?? ''"
+                    (change)="depositAccountId.set($any($event.target).value ? +$any($event.target).value : null)">
+              <option value="">{{ 'goals.no_linked_account' | translate }}</option>
+              @for (account of accountsStore.accounts(); track account.id) {
+                <option [value]="account.id">{{ account.icon }} {{ account.name }}</option>
+              }
+            </select>
+            <small class="text-muted">{{ 'goals.linked_account_hint' | translate }}</small>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" (click)="showDepositModal.set(false)">{{ 'common.cancel' | translate }}</button>

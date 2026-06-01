@@ -176,6 +176,8 @@
     "net_worth": "Patrimoine net",
     "empty": "Aucun compte configuré",
     "delete_confirm": "Supprimer ce compte ? Les transactions associées ne seront pas supprimées.",
+    "effective_balance": "Solde effectif",
+    "goals_allocated": "alloués aux objectifs",
     "validation": {
       "name_required": "Le nom est obligatoire",
       "type_required": "Le type est obligatoire"
@@ -237,6 +239,9 @@
     "deposit": "Déposer",
     "deposit_title": "Ajouter un dépôt",
     "deposit_amount": "Montant du dépôt",
+    "linked_account": "Compte lié (optionnel)",
+    "no_linked_account": "Aucun compte",
+    "linked_account_hint": "Le montant ne sera pas déduit du compte, mais apparaîtra comme solde fictif.",
     "withdraw": "Retirer",
     "withdraw_title": "Retirer des fonds",
     "empty": "Aucun objectif d'épargne",

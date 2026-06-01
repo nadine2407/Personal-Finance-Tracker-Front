@@ -1,11 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { GoalsService } from './goals.service';
+import { AccountsStore } from '../accounts/accounts.store';
 import { NotificationService } from '../../core/services/notification.service';
 import { Goal, GoalRequest, DepositRequest } from '../../shared/models/goal.model';
 
 @Injectable({ providedIn: 'root' })
 export class GoalsStore {
   private service = inject(GoalsService);
+  private accountsStore = inject(AccountsStore);
   private notification = inject(NotificationService);
 
   readonly goals = signal<Goal[]>([]);
@@ -46,6 +48,9 @@ export class GoalsStore {
       next: updated => {
         this.goals.update(list => list.map(g => g.id === id ? updated : g));
         this.notification.success('common.success_save');
+        if (request.accountId) {
+          this.accountsStore.load();
+        }
       },
       error: () => this.notification.error('common.error_save')
     });
@@ -56,6 +61,9 @@ export class GoalsStore {
       next: updated => {
         this.goals.update(list => list.map(g => g.id === id ? updated : g));
         this.notification.success('common.success_save');
+        if (updated.linkedAccountId) {
+          this.accountsStore.load();
+        }
       },
       error: () => this.notification.error('common.error_save')
     });

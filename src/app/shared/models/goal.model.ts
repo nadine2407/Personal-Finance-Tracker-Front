@@ -8,6 +8,8 @@ export interface Goal {
   completed: boolean;
   progressPercent: number;
   remainingAmount: number;
+  linkedAccountId: number | null;
+  linkedAccountAmount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,4 +23,5 @@ export interface GoalRequest {
 
 export interface DepositRequest {
   amount: number;
+  accountId?: number | null;
 }

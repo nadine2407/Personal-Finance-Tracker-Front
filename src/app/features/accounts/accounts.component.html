@@ -43,6 +43,12 @@
               <div class="fw-bold fs-5" [class.text-danger]="account.currentBalance < 0">
                 {{ account.currentBalance | currencyFormat }}
               </div>
+              @if (account.goalAllocatedAmount > 0) {
+                <div class="text-muted" style="font-size:0.8rem">
+                  {{ 'accounts.effective_balance' | translate }}: <span [class.text-danger]="account.effectiveBalance < 0">{{ account.effectiveBalance | currencyFormat }}</span>
+                  <span class="ms-1" style="font-size:0.75rem">(−{{ account.goalAllocatedAmount | currencyFormat }} {{ 'accounts.goals_allocated' | translate }})</span>
+                </div>
+              }
               @if (account.initialBalance !== 0) {
                 <small class="text-muted">{{ 'accounts.initial_balance' | translate }}: {{ account.initialBalance | currencyFormat }}</small>
               }
