@@ -6,8 +6,8 @@ import { TranslateModule } from '@ngx-translate/core';
   standalone: true,
   imports: [TranslateModule],
   template: `
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <h2 class="mb-0 fw-bold">{{ titleKey | translate }}</h2>
+    <div class="page-header-block">
+      <h2 class="page-header-block__title">{{ titleKey | translate }}</h2>
       <div class="d-flex gap-2"><ng-content /></div>
     </div>
   `

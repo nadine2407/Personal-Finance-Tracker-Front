@@ -1,22 +1,24 @@
 <div class="d-flex" style="min-height:100vh">
   <!-- Sidebar -->
-  <nav class="sidebar bg-dark text-white d-flex flex-column p-3" style="width:250px;min-height:100vh;flex-shrink:0">
-    <div class="d-flex align-items-center mb-4">
-      <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:36px;height:36px">L</div>
+  <nav class="sidebar d-flex flex-column p-3" style="width:250px;min-height:100vh;flex-shrink:0">
+    <div class="d-flex align-items-center mb-4 px-1">
+      <div class="d-flex align-items-center justify-content-center text-white fw-bold me-2"
+           style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7b9fff,#5b7ef5);font-size:14px">L</div>
       <div>
-        <div class="fw-bold">Lumen</div>
-        <div class="text-muted small">Personal Finance</div>
+        <div class="fw-bold" style="color:var(--ink);font-size:0.9rem">Lumen</div>
+        <div style="color:var(--muted);font-size:0.68rem;font-family:var(--mono);letter-spacing:0.5px;text-transform:uppercase">Personal Finance</div>
       </div>
     </div>
     <div class="mb-4">
-      <div class="d-flex align-items-center p-2 rounded bg-secondary bg-opacity-25">
-        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:32px;height:32px">{{ auth.userInitials() }}</div>
+      <div class="d-flex align-items-center p-2 rounded" style="background:var(--surface-2)">
+        <div class="d-flex align-items-center justify-content-center text-white fw-bold me-2"
+             style="width:30px;height:30px;border-radius:8px;background:var(--primary-2);font-size:12px;flex-shrink:0">{{ auth.userInitials() }}</div>
         <div class="flex-grow-1 overflow-hidden">
-          <div class="fw-semibold text-truncate small">{{ auth.fullName() }}</div>
-          <div class="text-muted text-truncate" style="font-size:0.7rem">{{ auth.currentUser()?.email }}</div>
+          <div class="fw-semibold text-truncate" style="font-size:0.8rem;color:var(--ink)">{{ auth.fullName() }}</div>
+          <div class="text-truncate" style="font-size:0.68rem;color:var(--muted)">{{ auth.currentUser()?.email }}</div>
         </div>
         <div class="dropdown">
-          <button class="btn btn-link text-white p-0" data-bs-toggle="dropdown"><i class="bi bi-chevron-down"></i></button>
+          <button class="btn btn-sm p-0 px-1" style="color:var(--muted)" data-bs-toggle="dropdown"><i class="bi bi-chevron-down"></i></button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><button class="dropdown-item" (click)="auth.logout()"><i class="bi bi-box-arrow-right me-2"></i>{{ 'auth.logout' | translate }}</button></li>
           </ul>
@@ -26,9 +28,9 @@
     <ul class="nav flex-column flex-grow-1">
       @for (item of navItems; track item.path) {
         <li class="nav-item">
-          <a class="nav-link text-white d-flex align-items-center gap-2 rounded mb-1"
+          <a class="nav-link d-flex align-items-center gap-2 rounded mb-1"
              [routerLink]="item.path"
-             routerLinkActive="bg-primary">
+             routerLinkActive="active">
             <i class="bi" [class]="item.icon"></i>
             <span>{{ item.labelKey | translate }}</span>
           </a>
@@ -36,24 +38,24 @@
       }
     </ul>
     <div class="mt-auto">
-      <a class="nav-link text-muted d-flex align-items-center gap-2 rounded"
-         routerLink="/settings" routerLinkActive="text-white bg-secondary bg-opacity-25">
+      <a class="nav-link d-flex align-items-center gap-2 rounded"
+         routerLink="/settings" routerLinkActive="active">
         <i class="bi bi-gear"></i><span>{{ 'nav.settings' | translate }}</span>
       </a>
     </div>
   </nav>
   <!-- Main content -->
-  <div class="flex-grow-1 d-flex flex-column bg-light">
-    <header class="bg-white border-bottom px-4 py-3 d-flex align-items-center">
+  <div class="flex-grow-1 d-flex flex-column shell-main">
+    <header class="shell-header px-4 py-3 d-flex align-items-center">
       <div>
-        <span class="fw-semibold fs-5">{{ currentPageLabel() }}</span>
+        <span class="fw-semibold fs-5" style="color:var(--ink)">{{ currentPageLabel() }}</span>
       </div>
-      <div class="ms-auto d-flex align-items-center gap-2 text-muted small">
-        <i class="bi bi-calendar"></i>
-        <span>{{ currentMonth() }}</span>
+      <div class="ms-auto d-flex align-items-center gap-2 small" style="color:var(--muted)">
+        <i class="bi bi-calendar3"></i>
+        <span style="font-family:var(--mono)">{{ currentMonth() }}</span>
       </div>
     </header>
-    <main class="p-4 flex-grow-1">
+    <main class="p-4 flex-grow-1" style="max-width:1400px;width:100%;margin:0 auto">
       <router-outlet />
     </main>
   </div>
