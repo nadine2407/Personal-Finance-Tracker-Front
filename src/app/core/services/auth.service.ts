@@ -25,13 +25,13 @@ export class AuthService {
   });
 
   login(request: LoginRequest) {
-    return this.http.post<AuthResponse>(`${this.base}/login`, request).pipe(
+    return this.http.post<AuthResponse>(`${this.base}/sessions`, request).pipe(
       tap(res => this.saveSession(res))
     );
   }
 
   register(request: RegisterRequest) {
-    return this.http.post<AuthResponse>(`${this.base}/register`, request).pipe(
+    return this.http.post<AuthResponse>(`${this.base}/users`, request).pipe(
       tap(res => this.saveSession(res))
     );
   }

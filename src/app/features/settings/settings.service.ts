@@ -18,7 +18,7 @@ export interface UpdatePasswordRequest {
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private http = inject(HttpClient);
-  private base = `${environment.apiUrl}/user`;
+  private base = `${environment.apiUrl}/users`;
 
   updateProfile(request: UpdateProfileRequest): Observable<AuthResponse> {
     return this.http.put<AuthResponse>(`${this.base}/profile`, request);

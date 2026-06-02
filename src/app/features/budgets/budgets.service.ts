@@ -32,6 +32,6 @@ export class BudgetsService {
       .set('fromYear', fromYear)
       .set('toMonth', toMonth)
       .set('toYear', toYear);
-    return this.http.post<Budget[]>(`${this.base}/duplicate`, null, { params });
+    return this.http.post<Budget[]>(`${this.base}/copies`, null, { params });
   }
 }
