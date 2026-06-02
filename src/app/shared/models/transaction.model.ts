@@ -20,7 +20,6 @@ export interface Transaction {
   accountName: string | null;
   recurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
-  split: boolean;
   hidden: boolean;
 }
 
@@ -34,7 +33,6 @@ export interface TransactionRequest {
   accountId: number | null;
   recurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
-  split: boolean;
 }
 
 export interface TransactionFilter {
@@ -42,7 +40,6 @@ export interface TransactionFilter {
   categoryId?: number;
   accountId?: number;
   recurring?: boolean;
-  split?: boolean;
   startDate?: string;
   endDate?: string;
   minAmount?: number;

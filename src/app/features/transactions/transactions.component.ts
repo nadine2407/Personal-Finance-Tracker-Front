@@ -47,8 +47,7 @@ export class TransactionsComponent implements OnInit {
     endDate: [''],
     minAmount: [null as number | null],
     maxAmount: [null as number | null],
-    recurring: [false],
-    split: [false]
+    recurring: [false]
   });
 
   form = this.fb.group({
@@ -60,7 +59,6 @@ export class TransactionsComponent implements OnInit {
     description: [''],
     notes: [''],
     recurring: [false],
-    split: [false],
     recurrenceFrequency: [null as RecurrenceFrequency | null]
   });
 
@@ -79,7 +77,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   applyFilter(): void {
-    const { search, type, categoryId, startDate, endDate, minAmount, maxAmount, recurring, split } = this.filterForm.value;
+    const { search, type, categoryId, startDate, endDate, minAmount, maxAmount, recurring } = this.filterForm.value;
     this.store.applyFilter({
       search: search || undefined,
       type: (type as any) || undefined,
@@ -88,13 +86,12 @@ export class TransactionsComponent implements OnInit {
       endDate: endDate || undefined,
       minAmount: minAmount ?? undefined,
       maxAmount: maxAmount ?? undefined,
-      recurring: recurring || undefined,
-      split: split || undefined
+      recurring: recurring || undefined
     });
   }
 
   resetFilter(): void {
-    this.filterForm.reset({ recurring: false, split: false });
+    this.filterForm.reset({ recurring: false });
     this.store.applyFilter({});
   }
 
@@ -119,7 +116,6 @@ export class TransactionsComponent implements OnInit {
         description: tx.description ?? '',
         notes: tx.notes ?? '',
         recurring: tx.recurring ?? false,
-        split: tx.split ?? false,
         recurrenceFrequency: tx.recurrenceFrequency ?? null
       });
     } else {
@@ -132,7 +128,6 @@ export class TransactionsComponent implements OnInit {
         description: '',
         notes: '',
         recurring: false,
-        split: false,
         recurrenceFrequency: null
       });
     }
@@ -146,7 +141,7 @@ export class TransactionsComponent implements OnInit {
 
   submitForm(): void {
     if (this.form.invalid) return;
-    const { type, amount, transactionDate, categoryId, accountId, description, notes, recurring, split, recurrenceFrequency } = this.form.getRawValue();
+    const { type, amount, transactionDate, categoryId, accountId, description, notes, recurring, recurrenceFrequency } = this.form.getRawValue();
     const request = {
       type: type!,
       amount: amount!,
@@ -156,7 +151,6 @@ export class TransactionsComponent implements OnInit {
       description: description || null,
       notes: notes || null,
       recurring: recurring ?? false,
-      split: split ?? false,
       recurrenceFrequency: recurring ? recurrenceFrequency : null
     };
     const tx = this.editingTx();

@@ -49,10 +49,6 @@
             <input class="form-check-input" type="checkbox" formControlName="recurring" id="recCheck" />
             <label class="form-check-label small" for="recCheck">{{ 'transactions.recurring_only' | translate }}</label>
           </div>
-          <div class="form-check form-check-sm mb-0">
-            <input class="form-check-input" type="checkbox" formControlName="split" id="splitCheck" />
-            <label class="form-check-label small" for="splitCheck">{{ 'transactions.split_only' | translate }}</label>
-          </div>
         </div>
         <div class="col-12 d-flex gap-2 justify-content-end">
           <button class="btn btn-outline-secondary btn-sm" type="button" (click)="resetFilter()">{{ 'common.reset' | translate }}</button>
@@ -102,7 +98,6 @@
               <td>
                 @if (t.hidden) { <span title="{{ 'transactions.hidden' | translate }}" class="text-muted">👁️‍🗨️</span> }
                 @if (t.recurring) { <span title="Récurrent">🔄</span> }
-                @if (t.split) { <span title="Partagé">✂️</span> }
               </td>
               <td class="text-end fw-bold" [class.text-success]="t.type==='INCOME' && !t.hidden" [class.text-danger]="t.type==='EXPENSE' && !t.hidden" [class.text-muted]="t.hidden" [style.text-decoration]="t.hidden ? 'line-through' : 'none'">
                 {{ t.type === 'INCOME' ? '+' : '-' }}{{ t.amount | currencyFormat }}
@@ -212,10 +207,6 @@
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" formControlName="recurring" id="fRecurring" />
                 <label class="form-check-label" for="fRecurring">{{ 'transactions.recurring' | translate }}</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" formControlName="split" id="fSplit" />
-                <label class="form-check-label" for="fSplit">{{ 'transactions.split' | translate }}</label>
               </div>
             </div>
             @if (isRecurring) {

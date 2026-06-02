@@ -1,13 +1,13 @@
 <app-page-header titleKey="budgets.title">
   <div class="d-flex gap-2 align-items-center">
-    <select class="form-select form-select-sm" [value]="store.currentMonth()" (change)="store.setMonth(+$any($event.target).value)" style="width:120px">
+    <select class="form-select form-select-sm" (change)="store.setMonth(+$any($event.target).value)" style="width:120px">
       @for (m of months; track m.value) {
-        <option [value]="m.value">{{ m.label }}</option>
+        <option [value]="m.value" [selected]="m.value === store.currentMonth()">{{ m.label }}</option>
       }
     </select>
-    <select class="form-select form-select-sm" [value]="store.currentYear()" (change)="store.setYear(+$any($event.target).value)" style="width:90px">
+    <select class="form-select form-select-sm" (change)="store.setYear(+$any($event.target).value)" style="width:90px">
       @for (y of years; track y) {
-        <option [value]="y">{{ y }}</option>
+        <option [value]="y" [selected]="y === store.currentYear()">{{ y }}</option>
       }
     </select>
     <button class="btn btn-outline-secondary btn-sm" (click)="duplicatePrevMonth()">
