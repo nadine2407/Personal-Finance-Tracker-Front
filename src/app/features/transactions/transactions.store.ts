@@ -48,6 +48,13 @@ export class TransactionsStore {
     });
   }
 
+  updateNote(id: number, notes: string | null): void {
+    this.service.updateNote(id, notes).subscribe({
+      next: () => { this.notification.success('transactions.note_saved'); this.load(); },
+      error: () => this.notification.error('common.error_save')
+    });
+  }
+
   toggleHidden(id: number): void {
     this.service.toggleHidden(id).subscribe({
       next: updated => {

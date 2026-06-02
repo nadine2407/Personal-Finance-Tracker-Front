@@ -34,6 +34,10 @@ export class TransactionsService {
     return this.http.put<Transaction>(`${this.base}/${id}`, request);
   }
 
+  updateNote(id: number, notes: string | null): Observable<Transaction> {
+    return this.http.patch<Transaction>(`${this.base}/${id}/note`, { notes });
+  }
+
   toggleHidden(id: number): Observable<Transaction> {
     return this.http.patch<Transaction>(`${this.base}/${id}/hidden`, null);
   }

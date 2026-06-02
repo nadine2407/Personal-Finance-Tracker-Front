@@ -35,6 +35,9 @@ export class TransactionsComponent implements OnInit {
   showConfirmModal = signal(false);
   deletingTx = signal<Transaction | null>(null);
   showFilters = signal(false);
+  showNoteModal = signal(false);
+  notingTx = signal<Transaction | null>(null);
+  noteText = signal<string>('');
 
   filterForm = this.fb.group({
     search: [''],
@@ -163,6 +166,21 @@ export class TransactionsComponent implements OnInit {
       this.store.create(request as any);
     }
     this.closeModal();
+  }
+
+  openNote(tx: Transaction): void {
+    this.notingTx.set(tx);
+    this.noteText.set(tx.notes ?? '');
+    this.showNoteModal.set(true);
+  }
+
+  submitNote(): void {
+    const tx = this.notingTx();
+    if (tx) {
+      this.store.updateNote(tx.id, this.noteText() || null);
+    }
+    this.showNoteModal.set(false);
+    this.notingTx.set(null);
   }
 
   toggleHidden(tx: Transaction): void {
