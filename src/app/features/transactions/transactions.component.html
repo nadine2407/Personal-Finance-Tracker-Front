@@ -86,7 +86,7 @@
         </thead>
         <tbody>
           @for (t of store.transactions(); track t.id) {
-            <tr>
+            <tr [style.opacity]="t.hidden ? '0.45' : '1'">
               <td class="small">{{ t.transactionDate }}</td>
               <td>
                 <span class="badge" [class.bg-success]="t.type==='INCOME'" [class.bg-danger]="t.type==='EXPENSE'">
@@ -100,15 +100,23 @@
               </td>
               <td class="small">{{ t.description ?? '—' }}</td>
               <td>
+                @if (t.hidden) { <span title="{{ 'transactions.hidden' | translate }}" class="text-muted">👁️‍🗨️</span> }
                 @if (t.recurring) { <span title="Récurrent">🔄</span> }
                 @if (t.split) { <span title="Partagé">✂️</span> }
               </td>
-              <td class="text-end fw-bold" [class.text-success]="t.type==='INCOME'" [class.text-danger]="t.type==='EXPENSE'">
+              <td class="text-end fw-bold" [class.text-success]="t.type==='INCOME' && !t.hidden" [class.text-danger]="t.type==='EXPENSE' && !t.hidden" [class.text-muted]="t.hidden" [style.text-decoration]="t.hidden ? 'line-through' : 'none'">
                 {{ t.type === 'INCOME' ? '+' : '-' }}{{ t.amount | currencyFormat }}
               </td>
-              <td>
+              <td class="text-nowrap">
                 <button class="btn btn-sm btn-outline-secondary me-1" (click)="openForm(t)" title="{{ 'common.edit' | translate }}">
                   <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm me-1"
+                        [class.btn-outline-secondary]="!t.hidden"
+                        [class.btn-outline-warning]="t.hidden"
+                        (click)="toggleHidden(t)"
+                        [title]="(t.hidden ? 'transactions.show' : 'transactions.hide') | translate">
+                  <i class="bi" [class.bi-eye-slash]="!t.hidden" [class.bi-eye]="t.hidden"></i>
                 </button>
                 <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(t)" title="{{ 'common.delete' | translate }}">
                   <i class="bi bi-trash"></i>

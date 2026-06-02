@@ -34,6 +34,10 @@ export class TransactionsService {
     return this.http.put<Transaction>(`${this.base}/${id}`, request);
   }
 
+  toggleHidden(id: number): Observable<Transaction> {
+    return this.http.patch<Transaction>(`${this.base}/${id}/hidden`, null);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }

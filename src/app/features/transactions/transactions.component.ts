@@ -165,6 +165,10 @@ export class TransactionsComponent implements OnInit {
     this.closeModal();
   }
 
+  toggleHidden(tx: Transaction): void {
+    this.store.toggleHidden(tx.id);
+  }
+
   confirmDelete(tx: Transaction): void {
     this.deletingTx.set(tx);
     this.showConfirmModal.set(true);

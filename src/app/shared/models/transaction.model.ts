@@ -21,6 +21,7 @@ export interface Transaction {
   recurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
   split: boolean;
+  hidden: boolean;
 }
 
 export interface TransactionRequest {

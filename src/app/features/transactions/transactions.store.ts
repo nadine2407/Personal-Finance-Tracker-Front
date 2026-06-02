@@ -48,6 +48,16 @@ export class TransactionsStore {
     });
   }
 
+  toggleHidden(id: number): void {
+    this.service.toggleHidden(id).subscribe({
+      next: updated => {
+        this.page.update(p => ({ ...p, content: p.content.map(t => t.id === id ? updated : t) }));
+        this.notification.success(updated.hidden ? 'transactions.hidden_success' : 'transactions.shown_success');
+      },
+      error: () => this.notification.error('common.error_save')
+    });
+  }
+
   delete(id: number): void {
     this.service.delete(id).subscribe({
       next: () => { this.notification.success('common.success_delete'); this.load(); },
