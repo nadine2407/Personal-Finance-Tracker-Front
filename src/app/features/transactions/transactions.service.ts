@@ -22,6 +22,8 @@ export class TransactionsService {
     if (filter.minAmount != null) params = params.set('minAmount', filter.minAmount);
     if (filter.maxAmount != null) params = params.set('maxAmount', filter.maxAmount);
     if (filter.search) params = params.set('search', filter.search);
+    if (filter.recurring != null) params = params.set('recurring', filter.recurring);
+    if (filter.split != null) params = params.set('split', filter.split);
 
     return this.http.get<PageResponse<Transaction>>(this.base, { params });
   }
