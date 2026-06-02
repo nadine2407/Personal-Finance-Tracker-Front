@@ -43,6 +43,7 @@ export class BudgetsComponent implements OnInit {
   editingItem = signal<BudgetStatusItem | null>(null);
   showConfirmModal = signal(false);
   deletingItem = signal<BudgetStatusItem | null>(null);
+  showDuplicateModal = signal(false);
   categories = signal<Category[]>([]);
 
   form = this.fb.group({
@@ -103,10 +104,15 @@ export class BudgetsComponent implements OnInit {
   }
 
   duplicatePrevMonth(): void {
+    this.showDuplicateModal.set(true);
+  }
+
+  confirmDuplicate(): void {
     const month = this.store.currentMonth();
     const year = this.store.currentYear();
     const prevMonth = month === 1 ? 12 : month - 1;
     const prevYear = month === 1 ? year - 1 : year;
     this.store.duplicate(prevMonth, prevYear);
+    this.showDuplicateModal.set(false);
   }
 }

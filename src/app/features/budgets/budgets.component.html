@@ -134,3 +134,33 @@
     </div>
   </div>
 }
+
+@if (showDuplicateModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-copy me-2"></i>{{ 'budgets.duplicate_title' | translate }}
+          </h5>
+          <button class="btn-close" (click)="showDuplicateModal.set(false)"></button>
+        </div>
+        <div class="modal-body">
+          <p>{{ 'budgets.duplicate_confirm_msg' | translate }}</p>
+          @if (store.items().length > 0) {
+            <div class="alert alert-warning d-flex align-items-start gap-2 mb-0">
+              <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+              <span>{{ 'budgets.duplicate_warn_existing' | translate }}</span>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showDuplicateModal.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-primary" (click)="confirmDuplicate()">
+            <i class="bi bi-copy me-1"></i>{{ 'budgets.duplicate_confirm_btn' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
