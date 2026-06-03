@@ -1,20 +1,23 @@
-import { Injectable, signal } from '@angular/core';
-
-export interface Toast { message: string; type: 'success' | 'error' | 'info' }
+import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import Swal from 'sweetalert2';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  readonly toasts = signal<Toast[]>([]);
+  private translate = inject(TranslateService);
 
-  success(message: string) { this.show(message, 'success'); }
-  error(message: string) { this.show(message, 'error'); }
-  info(message: string) { this.show(message, 'info'); }
+  success(messageKey: string): void {
+    const message = this.translate.instant(messageKey);
+    Swal.fire({ icon: 'success', title: message, toast: true, position: 'bottom-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+  }
 
-  remove(toast: Toast) { this.toasts.update(ts => ts.filter(t => t !== toast)); }
+  error(messageKey: string): void {
+    const message = this.translate.instant(messageKey);
+    Swal.fire({ icon: 'error', title: message, toast: true, position: 'bottom-end', showConfirmButton: false, timer: 4000, timerProgressBar: true });
+  }
 
-  private show(message: string, type: Toast['type']) {
-    const toast: Toast = { message, type };
-    this.toasts.update(ts => [...ts, toast]);
-    setTimeout(() => this.remove(toast), 4000);
+  info(messageKey: string): void {
+    const message = this.translate.instant(messageKey);
+    Swal.fire({ icon: 'info', title: message, toast: true, position: 'bottom-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
   }
 }
