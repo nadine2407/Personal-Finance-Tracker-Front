@@ -6,88 +6,198 @@
 
 @if (store.loading()) {
   <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
-} @else if (store.goals().length === 0) {
-  <app-empty-state messageKey="goals.empty">
-    <button class="btn btn-primary" (click)="openForm()">{{ 'goals.add' | translate }}</button>
+} @else if (!hasAnySavingsAccount()) {
+  <app-empty-state messageKey="goals.no_savings_account">
+    <a class="btn btn-outline-primary" routerLink="/accounts">{{ 'goals.go_to_accounts' | translate }}</a>
   </app-empty-state>
 } @else {
-  <div class="row g-3">
-    @for (goal of store.goals(); track goal.id) {
-      <div class="col-md-6 col-lg-4">
-        <div class="card h-100" [class.border-success]="goal.completed">
-          <div class="card-body">
-            <div class="d-flex align-items-start mb-2">
-              <div class="flex-grow-1">
-                <h6 class="card-title mb-0">{{ goal.name }}</h6>
-                @if (goal.completed) {
-                  <span class="badge bg-success">✓ {{ 'goals.completed' | translate }}</span>
-                } @else if (goal.deadline) {
-                  @if (daysRemaining(goal.deadline); as days) {
-                    <small [class.text-danger]="days < 0" class="text-muted">
-                      {{ days < 0 ? ('goals.overdue' | translate) : (days + ' ' + ('goals.days_remaining' | translate)) }}
-                    </small>
-                  }
-                }
-              </div>
-              <div class="d-flex gap-1">
-                <button class="btn btn-sm btn-outline-secondary" (click)="openForm(goal)"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(goal)"><i class="bi bi-trash"></i></button>
-              </div>
-            </div>
-            @if (goal.description) {
-              <p class="text-muted small mb-2">{{ goal.description }}</p>
-            }
-            <div class="d-flex justify-content-between small mb-1">
-              <span class="fw-bold">{{ goal.currentAmount | currencyFormat }}</span>
-              <span class="text-muted">/ {{ goal.targetAmount | currencyFormat }}</span>
-            </div>
-            <div class="progress mb-1" style="height:8px">
-              <div class="progress-bar" [class.bg-success]="goal.completed"
-                   [style.width.%]="goal.progressPercent" role="progressbar"></div>
-            </div>
-            <div class="d-flex justify-content-between small text-muted mb-2">
-              <span>{{ goal.progressPercent | number:'1.0-0' }}%</span>
-              @if (!goal.completed) {
-                <span>{{ 'goals.remaining' | translate }}: {{ goal.remainingAmount | currencyFormat }}</span>
-              }
-            </div>
-            @if (!goal.completed) {
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-primary flex-fill" (click)="openDeposit(goal)">
-                  <i class="bi bi-plus-circle me-1"></i>{{ 'goals.deposit' | translate }}
-                </button>
-                @if (goal.currentAmount > 0) {
-                  <button class="btn btn-sm btn-outline-warning flex-fill" (click)="openWithdraw(goal)">
-                    <i class="bi bi-dash-circle me-1"></i>{{ 'goals.withdraw' | translate }}
-                  </button>
-                }
+
+  <!-- ── Bloc par compte épargne ──────────────────────────────────────── -->
+  @for (group of store.goalsByAccount(); track group.account.id) {
+    <div class="rounded-3 overflow-hidden mb-4" style="border:1px solid rgba(255,255,255,0.07);box-shadow:0 4px 24px rgba(0,0,0,0.4)">
+
+      <!-- En-tête compte -->
+      <div class="p-3" [style]="accountHeaderStyle(group.account.color)">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span style="font-size:1.6rem;line-height:1">{{ group.account.icon ?? '💰' }}</span>
+          <div class="flex-grow-1">
+            <div class="fw-bold" style="font-size:1.05rem;color:#e4ecf7">{{ group.account.name }}</div>
+            <small style="color:#617693">Solde total : <strong style="color:#a8bcd4">{{ group.account.currentBalance | currencyFormat }}</strong></small>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" style="font-size:0.8rem" (click)="openForm(group.account.id)">
+            <i class="bi bi-plus-circle me-1"></i>{{ 'goals.add_for_account' | translate }}
+          </button>
+        </div>
+
+        <!-- Barre de répartition -->
+        <div class="progress rounded-pill mb-1" style="height:7px">
+          <div class="progress-bar rounded-pill"
+               [style.width.%]="group.allocationPercent"
+               [style.background]="group.account.color ?? '#6e8fff'"></div>
+        </div>
+        <div class="d-flex justify-content-between" style="font-size:0.78rem">
+          <span style="color:#617693"><i class="bi bi-check-circle me-1" style="color:#1fd99a"></i>{{ group.totalAllocated | currencyFormat }} {{ 'goals.allocated' | translate }}</span>
+          <span [style.color]="group.unallocated < 0 ? '#ff5a72' : '#617693'">
+            <i class="bi bi-circle-dotted me-1"></i>{{ group.unallocated | currencyFormat }} {{ 'goals.unallocated' | translate }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Liste des objectifs -->
+      <div class="p-2" style="background:#0d1526">
+        @if (group.goals.length === 0) {
+          <div class="text-center py-4" style="color:#617693">
+            <i class="bi bi-piggy-bank" style="font-size:2rem;opacity:.35"></i>
+            <div class="small mt-2">{{ 'goals.no_goals_for_account' | translate }}</div>
+          </div>
+        } @else {
+          <div class="d-flex flex-column gap-2 pt-1">
+            @for (goal of group.goals; track goal.id; let first=$first; let last=$last; let idx=$index) {
+              <div class="rounded-3 p-3" [style]="goalItemStyle(idx)">
+                <div class="d-flex align-items-start gap-2">
+
+                  <!-- Priorité -->
+                  <div class="d-flex flex-column align-items-center gap-1 pt-1" style="min-width:28px">
+                    <button class="btn p-0 lh-1 border-0" style="font-size:.7rem;color:#344860;background:none"
+                            [disabled]="first" (click)="moveUp(goal)">
+                      <i class="bi bi-chevron-up"></i>
+                    </button>
+                    <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                          [style.background]="priorityColor(idx)"
+                          style="width:20px;height:20px;font-size:.65rem;color:#fff">
+                      {{ idx + 1 }}
+                    </span>
+                    <button class="btn p-0 lh-1 border-0" style="font-size:.7rem;color:#344860;background:none"
+                            [disabled]="last" (click)="moveDown(goal)">
+                      <i class="bi bi-chevron-down"></i>
+                    </button>
+                  </div>
+
+                  <!-- Contenu -->
+                  <div class="flex-grow-1 overflow-hidden">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                      <span class="fw-semibold text-truncate" style="font-size:.95rem;color:#e4ecf7">
+                        {{ goal.name }}
+                        @if (goal.completed) {
+                          <span class="ms-1" style="font-size:.7rem;color:#1fd99a;font-weight:700">✓ ATTEINT</span>
+                        }
+                      </span>
+                      <span class="text-nowrap ms-2" style="font-size:.85rem">
+                        <strong style="color:#e4ecf7">{{ goal.allocatedAmount | currencyFormat }}</strong>
+                        <span style="color:#617693"> / {{ goal.targetAmount | currencyFormat }}</span>
+                      </span>
+                    </div>
+
+                    <!-- Barre de progression -->
+                    <div class="progress rounded-pill mb-1" style="height:6px">
+                      <div class="progress-bar rounded-pill"
+                           [style.width.%]="goal.progressPercent"
+                           [style.background]="progressBarColor(goal.progressPercent)"></div>
+                    </div>
+                    <div class="d-flex justify-content-between" style="font-size:.72rem;color:#617693">
+                      <span>{{ goal.progressPercent | number:'1.0-0' }}%</span>
+                      @if (!goal.completed) {
+                        <span>{{ goal.remainingAmount | currencyFormat }} restants</span>
+                      }
+                    </div>
+
+                    <!-- Deadline -->
+                    @if (goal.deadline) {
+                      @if (daysRemaining(goal.deadline); as days) {
+                        <div style="font-size:.72rem;margin-top:2px" [style.color]="days < 0 ? '#ff5a72' : '#617693'">
+                          <i class="bi bi-calendar3 me-1"></i>
+                          {{ days < 0 ? 'En retard' : (days + ' jours restants') }}
+                        </div>
+                      }
+                    }
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="d-flex flex-column gap-1">
+                    <button class="btn btn-sm px-2 py-1"
+                            style="background:rgba(31,217,154,0.12);color:#1fd99a;border:1px solid rgba(31,217,154,0.25);font-size:.75rem"
+                            (click)="openDeposit(goal)">
+                      <i class="bi bi-arrow-down-circle me-1"></i>{{ 'goals.deposit' | translate }}
+                    </button>
+                    @if (goal.allocatedAmount > 0) {
+                      <button class="btn btn-sm px-2 py-1"
+                              style="background:rgba(245,166,35,0.12);color:#f5a623;border:1px solid rgba(245,166,35,0.25);font-size:.75rem"
+                              (click)="openWithdraw(goal)">
+                        <i class="bi bi-arrow-up-circle me-1"></i>{{ 'goals.withdraw' | translate }}
+                      </button>
+                    }
+                    <div class="d-flex gap-1 mt-1">
+                      <button class="btn btn-sm p-1"
+                              style="background:#1c2a42;border:1px solid rgba(255,255,255,0.07);color:#a8bcd4;font-size:.75rem"
+                              (click)="openForm(undefined, goal)">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-sm p-1"
+                              style="background:rgba(255,90,114,0.1);border:1px solid rgba(255,90,114,0.25);color:#ff5a72;font-size:.75rem"
+                              (click)="confirmDelete(goal)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
               </div>
             }
           </div>
-        </div>
+        }
       </div>
-    }
-  </div>
+
+    </div>
+  }
+
+  @if (store.goalsByAccount().every(g => g.goals.length === 0)) {
+    <app-empty-state messageKey="goals.empty">
+      <button class="btn btn-primary" (click)="openForm()">{{ 'goals.add' | translate }}</button>
+    </app-empty-state>
+  }
 }
 
+<!-- ── Modal création/édition ──────────────────────────────────────────────── -->
 @if (showFormModal()) {
-  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+  <div class="modal d-block" style="background:rgba(0,0,0,0.6)">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{ editingGoal() ? ('goals.edit' | translate) : ('goals.add' | translate) }}</h5>
-          <button class="btn-close" (click)="closeModal()"></button>
+          <h5 class="modal-title">
+            {{ editingGoal() ? ('goals.edit' | translate) : ('goals.add' | translate) }}
+          </h5>
+          <button class="btn-close" (click)="closeForm()"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="form" class="row g-3">
             <div class="col-12">
-              <label class="form-label">{{ 'common.name' | translate }}</label>
-              <input class="form-control" formControlName="name" />
+              <label class="form-label">{{ 'goals.savings_account' | translate }}</label>
+              @if (editingGoal()) {
+                <input class="form-control" [value]="editingGoal()!.linkedAccountName ?? ('goals.no_account' | translate)" disabled />
+              } @else {
+                <select class="form-select" formControlName="linkedAccountId"
+                        [class.is-invalid]="form.get('linkedAccountId')?.invalid && form.get('linkedAccountId')?.touched">
+                  <option [ngValue]="null" disabled>— Sélectionner un compte —</option>
+                  @for (a of savingsAccounts(); track a.id) {
+                    <option [ngValue]="a.id">{{ a.icon ?? '💰' }} {{ a.name }} — {{ a.currentBalance | currencyFormat }}</option>
+                  }
+                </select>
+              }
             </div>
             <div class="col-12">
+              <label class="form-label">{{ 'common.name' | translate }}</label>
+              <input class="form-control" formControlName="name" placeholder="Ex : Vacances Japon, Fond d'urgence…" />
+            </div>
+            <div class="col-6">
               <label class="form-label">{{ 'goals.target_amount' | translate }}</label>
               <input class="form-control" type="number" formControlName="targetAmount" min="0.01" step="0.01" />
             </div>
+            @if (!editingGoal()) {
+              <div class="col-6">
+                <label class="form-label">{{ 'goals.initial_allocation' | translate }}</label>
+                <input class="form-control" type="number" formControlName="allocatedAmount" min="0" step="0.01" />
+              </div>
+            }
             <div class="col-12">
               <label class="form-label">{{ 'goals.deadline' | translate }}</label>
               <input class="form-control" type="date" formControlName="deadline" />
@@ -99,79 +209,111 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-          <button class="btn btn-primary" (click)="submitForm()" [disabled]="form.invalid">{{ 'common.save' | translate }}</button>
+          <button class="btn btn-secondary" (click)="closeForm()">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-primary px-4" (click)="submitForm()" [disabled]="form.invalid">{{ 'common.save' | translate }}</button>
         </div>
       </div>
     </div>
   </div>
 }
 
+<!-- ── Modal dépôt ──────────────────────────────────────────────────────────── -->
 @if (showDepositModal()) {
-  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+  <div class="modal d-block" style="background:rgba(0,0,0,0.6)">
     <div class="modal-dialog modal-sm">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ 'goals.deposit' | translate }}</h5>
-          <button class="btn-close" (click)="showDepositModal.set(false)"></button>
+        <div class="modal-header" style="border-bottom:1px solid rgba(31,217,154,0.15)">
+          <h5 class="modal-title" style="font-size:.95rem">
+            <i class="bi bi-arrow-down-circle me-2" style="color:#1fd99a"></i>{{ 'goals.deposit' | translate }}
+            @if (depositingGoal()) { <span style="color:#617693;font-weight:400"> — {{ depositingGoal()!.name }}</span> }
+          </h5>
+          <button class="btn-close btn-sm" (click)="showDepositModal.set(false)"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">{{ 'common.amount' | translate }}</label>
-            <input class="form-control" type="number" [value]="depositAmount()" (input)="depositAmount.set(+$any($event.target).value)" min="0.01" step="0.01" />
+          <div class="rounded-3 p-3 mb-3" style="background:rgba(31,217,154,0.08);border:1px solid rgba(31,217,154,0.2)">
+            <div class="d-flex justify-content-between small">
+              <span style="color:#617693">Déjà alloué</span>
+              <strong style="color:#e4ecf7">{{ depositingGoal()?.allocatedAmount | currencyFormat }}</strong>
+            </div>
+            <div class="d-flex justify-content-between small mt-1">
+              <span style="color:#617693">Disponible dans l'épargne</span>
+              <strong style="color:#1fd99a">{{ depositMax() | currencyFormat }}</strong>
+            </div>
           </div>
-          <div>
-            <label class="form-label">{{ 'goals.linked_account' | translate }}</label>
-            <select class="form-select form-select-sm"
-                    [value]="depositAccountId() ?? ''"
-                    (change)="depositAccountId.set($any($event.target).value ? +$any($event.target).value : null)">
-              <option value="">{{ 'goals.no_linked_account' | translate }}</option>
-              @for (account of accountsStore.accounts(); track account.id) {
-                <option [value]="account.id">{{ account.icon }} {{ account.name }}</option>
-              }
-            </select>
-            <small class="text-muted">{{ 'goals.linked_account_hint' | translate }}</small>
-          </div>
+          <label class="form-label">{{ 'goals.deposit_amount' | translate }}</label>
+          <input class="form-control form-control-lg" type="number"
+                 [value]="depositAmount()"
+                 (input)="depositAmount.set(+$any($event.target).value)"
+                 min="0.01" [max]="depositMax()" step="0.01" placeholder="0,00" />
+          @if (depositAmount() > 0 && depositingGoal()) {
+            <div class="mt-2 text-center small" style="color:#617693">
+              Nouveau total : <strong style="color:#1fd99a">{{ (depositingGoal()!.allocatedAmount + depositAmount()) | currencyFormat }}</strong>
+            </div>
+          }
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" (click)="showDepositModal.set(false)">{{ 'common.cancel' | translate }}</button>
-          <button class="btn btn-primary btn-sm" (click)="submitDeposit()" [disabled]="depositAmount() <= 0">{{ 'common.save' | translate }}</button>
+          <button class="btn btn-sm px-4" style="background:rgba(31,217,154,0.15);color:#1fd99a;border:1px solid rgba(31,217,154,0.3)"
+                  (click)="submitDeposit()" [disabled]="depositAmount() <= 0 || depositAmount() > depositMax()">
+            <i class="bi bi-arrow-down-circle me-1"></i>{{ 'goals.deposit' | translate }}
+          </button>
         </div>
       </div>
     </div>
   </div>
 }
 
+<!-- ── Modal retrait ────────────────────────────────────────────────────────── -->
 @if (showWithdrawModal()) {
-  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+  <div class="modal d-block" style="background:rgba(0,0,0,0.6)">
     <div class="modal-dialog modal-sm">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ 'goals.withdraw_title' | translate }}</h5>
-          <button class="btn-close" (click)="showWithdrawModal.set(false)"></button>
+        <div class="modal-header" style="border-bottom:1px solid rgba(245,166,35,0.15)">
+          <h5 class="modal-title" style="font-size:.95rem">
+            <i class="bi bi-arrow-up-circle me-2" style="color:#f5a623"></i>{{ 'goals.withdraw' | translate }}
+            @if (withdrawingGoal()) { <span style="color:#617693;font-weight:400"> — {{ withdrawingGoal()!.name }}</span> }
+          </h5>
+          <button class="btn-close btn-sm" (click)="showWithdrawModal.set(false)"></button>
         </div>
         <div class="modal-body">
-          <label class="form-label">{{ 'common.amount' | translate }}</label>
-          <input class="form-control" type="number" [value]="withdrawAmount()" (input)="withdrawAmount.set(+$any($event.target).value)" min="0.01" step="0.01" />
-          @if (withdrawingGoal()) {
-            <small class="text-muted">Max : {{ withdrawingGoal()!.currentAmount | currencyFormat }}</small>
+          <div class="rounded-3 p-3 mb-3" style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2)">
+            <div class="d-flex justify-content-between small">
+              <span style="color:#617693">Actuellement alloué</span>
+              <strong style="color:#e4ecf7">{{ withdrawingGoal()?.allocatedAmount | currencyFormat }}</strong>
+            </div>
+          </div>
+          <label class="form-label">{{ 'goals.withdraw_amount' | translate }}</label>
+          <input class="form-control form-control-lg" type="number"
+                 [value]="withdrawAmount()"
+                 (input)="withdrawAmount.set(+$any($event.target).value)"
+                 min="0.01" [max]="withdrawingGoal()?.allocatedAmount ?? 0" step="0.01" placeholder="0,00" />
+          @if (withdrawAmount() > 0 && withdrawingGoal()) {
+            <div class="mt-2 text-center small" style="color:#617693">
+              Nouveau total : <strong style="color:#f5a623">{{ withdrawPreview() | currencyFormat }}</strong>
+            </div>
           }
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" (click)="showWithdrawModal.set(false)">{{ 'common.cancel' | translate }}</button>
-          <button class="btn btn-warning btn-sm" (click)="submitWithdraw()" [disabled]="withdrawAmount() <= 0">{{ 'common.save' | translate }}</button>
+          <button class="btn btn-sm px-4" style="background:rgba(245,166,35,0.15);color:#f5a623;border:1px solid rgba(245,166,35,0.3)"
+                  (click)="submitWithdraw()" [disabled]="withdrawAmount() <= 0 || withdrawAmount() > (withdrawingGoal()?.allocatedAmount ?? 0)">
+            <i class="bi bi-arrow-up-circle me-1"></i>{{ 'goals.withdraw' | translate }}
+          </button>
         </div>
       </div>
     </div>
   </div>
 }
 
+<!-- ── Modal suppression ────────────────────────────────────────────────────── -->
 @if (showConfirmModal()) {
-  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+  <div class="modal d-block" style="background:rgba(0,0,0,0.6)">
     <div class="modal-dialog modal-sm">
       <div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">{{ 'common.confirm_delete' | translate }}</h5></div>
-        <div class="modal-body">{{ 'common.confirm_delete_msg' | translate }}</div>
+        <div class="modal-header">
+          <h5 class="modal-title">{{ 'common.confirm_delete' | translate }}</h5>
+        </div>
+        <div class="modal-body" style="color:#617693">{{ 'goals.delete_confirm' | translate }}</div>
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" (click)="showConfirmModal.set(false)">{{ 'common.cancel' | translate }}</button>
           <button class="btn btn-danger btn-sm" (click)="deleteConfirmed()">{{ 'common.delete' | translate }}</button>

@@ -7,6 +7,7 @@
 @if (store.loading()) {
   <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
 } @else {
+
   @if (store.accounts().length > 0) {
     <div class="row g-3 mb-4">
       <div class="col-md-4">
@@ -20,46 +21,135 @@
       <button class="btn btn-primary" (click)="openForm()">{{ 'accounts.add' | translate }}</button>
     </app-empty-state>
   } @else {
-    <div class="row g-3">
+
+    <div class="d-flex flex-column gap-2">
       @for (account of store.accounts(); track account.id) {
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center mb-2">
-                <div class="rounded-circle d-flex align-items-center justify-content-center me-2"
-                     [style.background]="(account.color ?? '#4f8ef7') + '22'"
-                     [style.color]="account.color ?? '#4f8ef7'" style="width:40px;height:40px;font-size:1.2rem">
-                  {{ typeIcon(account) }}
-                </div>
-                <div class="flex-grow-1">
-                  <div class="fw-semibold">{{ account.name }}</div>
-                  <small class="text-muted">{{ 'accounts.type_' + account.type.toLowerCase() | translate }}</small>
-                </div>
-                <div class="d-flex gap-1">
-                  <button class="btn btn-sm btn-outline-secondary" (click)="openForm(account)"><i class="bi bi-pencil"></i></button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(account)"><i class="bi bi-trash"></i></button>
-                </div>
-              </div>
-              <div class="fw-bold fs-5" [class.text-danger]="account.currentBalance < 0">
+
+        <div class="rounded-3 overflow-hidden" style="border:1px solid rgba(255,255,255,0.07);border-left:3px solid {{ account.color ?? '#6e8fff' }}">
+
+          <!-- ── Ligne compte ── -->
+          <div class="d-flex align-items-center gap-3 px-3 py-3"
+               style="cursor:pointer;transition:background .15s"
+               [style.background]="expandedAccountId() === account.id ? ((account.color ?? '#6e8fff') + '12') : 'var(--paper)'"
+               (click)="toggleTransactions(account)">
+
+            <!-- Icône -->
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 [style.background]="(account.color ?? '#4f8ef7') + '22'"
+                 style="width:42px;height:42px;font-size:1.25rem">
+              {{ typeIcon(account) }}
+            </div>
+
+            <!-- Nom + type -->
+            <div class="flex-grow-1">
+              <div class="fw-semibold" style="color:#e4ecf7;font-size:.95rem">{{ account.name }}</div>
+              <div style="color:#617693;font-size:.78rem">{{ 'accounts.type_' + account.type.toLowerCase() | translate }}</div>
+            </div>
+
+            <!-- Solde -->
+            <div class="text-end me-2">
+              <div class="fw-bold" style="font-size:1.05rem" [style.color]="account.currentBalance < 0 ? '#ff5a72' : '#e4ecf7'">
                 {{ account.currentBalance | currencyFormat }}
               </div>
-              @if (account.goalAllocatedAmount > 0) {
-                <div class="text-muted" style="font-size:0.8rem">
-                  {{ 'accounts.effective_balance' | translate }}: <span [class.text-danger]="account.effectiveBalance < 0">{{ account.effectiveBalance | currencyFormat }}</span>
-                  <span class="ms-1" style="font-size:0.75rem">(−{{ account.goalAllocatedAmount | currencyFormat }} {{ 'accounts.goals_allocated' | translate }})</span>
-                </div>
-              }
               @if (account.initialBalance !== 0) {
-                <small class="text-muted">{{ 'accounts.initial_balance' | translate }}: {{ account.initialBalance | currencyFormat }}</small>
+                <div style="font-size:.72rem;color:#617693">init. {{ account.initialBalance | currencyFormat }}</div>
               }
             </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-1 flex-shrink-0" (click)="$event.stopPropagation()">
+              <button class="btn btn-sm btn-outline-secondary" (click)="openForm(account)"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(account)"><i class="bi bi-trash"></i></button>
+            </div>
+
+            <!-- Chevron -->
+            <i class="bi flex-shrink-0" style="color:#617693;font-size:.85rem;transition:transform .2s"
+               [class.bi-chevron-down]="expandedAccountId() !== account.id"
+               [class.bi-chevron-up]="expandedAccountId() === account.id"
+               [style.color]="expandedAccountId() === account.id ? (account.color ?? '#6e8fff') : '#617693'"></i>
           </div>
+
+          <!-- ── Panneau transactions ── -->
+          @if (expandedAccountId() === account.id) {
+            <div style="border-top:1px solid rgba(255,255,255,0.06);background:#0a1020">
+
+              @if (txLoading()) {
+                <div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>
+              } @else if (accountTransactions().length === 0) {
+                <div class="text-center py-4" style="color:#617693">
+                  <i class="bi bi-inbox" style="font-size:1.6rem;opacity:.4"></i>
+                  <div class="small mt-1">Aucune transaction sur ce compte</div>
+                </div>
+              } @else {
+                <!-- En-tête colonnes -->
+                <div class="d-flex align-items-center gap-3 px-3 py-2"
+                     style="border-bottom:1px solid rgba(255,255,255,0.05);font-size:.72rem;letter-spacing:.8px;text-transform:uppercase;color:#344860">
+                  <div style="width:34px"></div>
+                  <div class="flex-grow-1">Libellé</div>
+                  <div style="min-width:80px;text-align:right">Date</div>
+                  <div style="min-width:100px;text-align:right">Montant</div>
+                </div>
+
+                <!-- Lignes -->
+                <div style="max-height:380px;overflow-y:auto">
+                  @for (tx of accountTransactions(); track tx.id) {
+                    <div class="d-flex align-items-center gap-3 px-3 py-2"
+                         style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s"
+                         [style.opacity]="tx.hidden ? '0.4' : '1'">
+
+                      <!-- Icône type -->
+                      <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                           [style.background]="txAmountColor(tx) + '18'"
+                           style="width:34px;height:34px;font-size:.8rem">
+                        @if (tx.type === 'INCOME')   { <i class="bi bi-arrow-down-left" [style.color]="txAmountColor(tx)"></i> }
+                        @if (tx.type === 'EXPENSE')  { <i class="bi bi-arrow-up-right"  [style.color]="txAmountColor(tx)"></i> }
+                        @if (tx.type === 'TRANSFER') { <i class="bi bi-arrow-left-right"[style.color]="txAmountColor(tx)"></i> }
+                      </div>
+
+                      <!-- Libellé -->
+                      <div class="flex-grow-1 overflow-hidden">
+                        <div class="text-truncate" style="font-size:.87rem;color:#e4ecf7">
+                          {{ tx.description || tx.category?.name || '—' }}
+                        </div>
+                        <div style="font-size:.74rem;color:#617693" class="d-flex align-items-center gap-2">
+                          @if (tx.category) {
+                            <span>{{ tx.category.icon ?? '' }} {{ tx.category.name }}</span>
+                          }
+                          @if (tx.type === 'TRANSFER' && tx.accountName) {
+                            <span><i class="bi bi-arrow-right me-1"></i>{{ tx.accountName }}</span>
+                          }
+                          @if (tx.recurring) {
+                            <span style="color:#6e8fff"><i class="bi bi-arrow-repeat"></i></span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Date -->
+                      <div class="flex-shrink-0 text-end" style="min-width:80px;font-size:.78rem;color:#617693">
+                        {{ tx.transactionDate | date:'dd/MM/yy' }}
+                      </div>
+
+                      <!-- Montant -->
+                      <div class="flex-shrink-0 text-end" style="min-width:100px">
+                        <span class="fw-semibold" style="font-size:.9rem" [style.color]="txAmountColor(tx)">
+                          {{ txSign(tx) }}&nbsp;{{ tx.amount | currencyFormat }}
+                        </span>
+                      </div>
+
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
         </div>
       }
     </div>
   }
 }
 
+<!-- Modal création/édition -->
 @if (showFormModal()) {
   <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
     <div class="modal-dialog">
@@ -105,6 +195,7 @@
   </div>
 }
 
+<!-- Modal suppression -->
 @if (showConfirmModal()) {
   <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
     <div class="modal-dialog modal-sm">

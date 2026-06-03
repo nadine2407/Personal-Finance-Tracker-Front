@@ -1,8 +1,17 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { GoalsService } from './goals.service';
 import { AccountsStore } from '../accounts/accounts.store';
 import { NotificationService } from '../../core/services/notification.service';
-import { Goal, GoalRequest, DepositRequest } from '../../shared/models/goal.model';
+import { Goal, GoalRequest, AllocationRequest } from '../../shared/models/goal.model';
+import { Account } from '../../shared/models/account.model';
+
+export interface AccountGoalGroup {
+  account: Account;
+  goals: Goal[];
+  totalAllocated: number;
+  unallocated: number;
+  allocationPercent: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class GoalsStore {
@@ -13,6 +22,27 @@ export class GoalsStore {
   readonly goals = signal<Goal[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+
+  /** Objectifs regroupés par compte épargne, triés par priorité. */
+  readonly goalsByAccount = computed<AccountGoalGroup[]>(() => {
+    const savingsAccounts = this.accountsStore.accounts().filter(a => a.type === 'SAVINGS');
+    const allGoals = this.goals();
+
+    return savingsAccounts.map(account => {
+      const accountGoals = allGoals
+        .filter(g => g.linkedAccountId === account.id)
+        .sort((a, b) => (a.priority ?? 9999) - (b.priority ?? 9999));
+      const totalAllocated = accountGoals.reduce((sum, g) => sum + (g.allocatedAmount ?? 0), 0);
+      const balance = account.currentBalance;
+      return {
+        account,
+        goals: accountGoals,
+        totalAllocated,
+        unallocated: balance - totalAllocated,
+        allocationPercent: balance > 0 ? Math.min(100, Math.round((totalAllocated / balance) * 100)) : 0
+      };
+    });
+  });
 
   load(): void {
     this.loading.set(true);
@@ -26,7 +56,7 @@ export class GoalsStore {
   create(request: GoalRequest): void {
     this.service.create(request).subscribe({
       next: created => {
-        this.goals.update(list => [created, ...list]);
+        this.goals.update(list => [...list, created]);
         this.notification.success('common.success_save');
       },
       error: () => this.notification.error('common.error_save')
@@ -43,28 +73,20 @@ export class GoalsStore {
     });
   }
 
-  deposit(id: number, request: DepositRequest): void {
-    this.service.deposit(id, request).subscribe({
+  allocate(id: number, request: AllocationRequest): void {
+    this.service.allocate(id, request).subscribe({
       next: updated => {
         this.goals.update(list => list.map(g => g.id === id ? updated : g));
         this.notification.success('common.success_save');
-        if (request.accountId) {
-          this.accountsStore.load();
-        }
+        this.accountsStore.load();
       },
       error: () => this.notification.error('common.error_save')
     });
   }
 
-  withdraw(id: number, request: DepositRequest): void {
-    this.service.withdraw(id, request).subscribe({
-      next: updated => {
-        this.goals.update(list => list.map(g => g.id === id ? updated : g));
-        this.notification.success('common.success_save');
-        if (updated.linkedAccountId) {
-          this.accountsStore.load();
-        }
-      },
+  movePriority(id: number, direction: 'up' | 'down'): void {
+    this.service.movePriority(id, direction).subscribe({
+      next: () => this.load(),
       error: () => this.notification.error('common.error_save')
     });
   }
@@ -74,6 +96,7 @@ export class GoalsStore {
       next: () => {
         this.goals.update(list => list.filter(g => g.id !== id));
         this.notification.success('common.success_delete');
+        this.accountsStore.load();
       },
       error: () => this.notification.error('common.error_delete')
     });

@@ -93,13 +93,13 @@ export class TransactionsComponent implements OnInit {
     if (!amount || amount <= 0) return false;
     const account = this.accountsStore.accounts().find(a => a.id === +accountId);
     if (!account) return false;
-    return amount > account.effectiveBalance;
+    return amount > account.currentBalance;
   }
 
   get sourceAccountBalance(): number | null {
     const accountId = this.form.get('accountId')?.value;
     if (!accountId) return null;
-    return this.accountsStore.accounts().find(a => a.id === +accountId)?.effectiveBalance ?? null;
+    return this.accountsStore.accounts().find(a => a.id === +accountId)?.currentBalance ?? null;
   }
 
   ngOnInit(): void {

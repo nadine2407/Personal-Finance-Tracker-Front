@@ -2,14 +2,15 @@ export interface Goal {
   id: number;
   name: string;
   targetAmount: number;
-  currentAmount: number;
+  allocatedAmount: number;
   deadline: string | null;
   description: string | null;
   completed: boolean;
   progressPercent: number;
   remainingAmount: number;
   linkedAccountId: number | null;
-  linkedAccountAmount: number;
+  linkedAccountName: string | null;
+  priority: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,9 +20,10 @@ export interface GoalRequest {
   targetAmount: number;
   deadline: string | null;
   description: string | null;
+  linkedAccountId: number | null;
+  allocatedAmount: number;
 }
 
-export interface DepositRequest {
-  amount: number;
-  accountId?: number | null;
+export interface AllocationRequest {
+  allocatedAmount: number;
 }

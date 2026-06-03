@@ -1,12 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { AccountsStore } from './accounts.store';
 import { Account, AccountType } from '../../shared/models/account.model';
+import { TransactionsService } from '../transactions/transactions.service';
+import { Transaction } from '../../shared/models/transaction.model';
 
 @Component({
   selector: 'app-accounts',
@@ -14,6 +17,7 @@ import { Account, AccountType } from '../../shared/models/account.model';
   imports: [
     ReactiveFormsModule,
     TranslateModule,
+    DatePipe,
     PageHeaderComponent,
     EmptyStateComponent,
     StatCardComponent,
@@ -24,12 +28,17 @@ import { Account, AccountType } from '../../shared/models/account.model';
 })
 export class AccountsComponent implements OnInit {
   store = inject(AccountsStore);
+  private txService = inject(TransactionsService);
   private fb = inject(FormBuilder);
 
   showFormModal = signal(false);
   editingAccount = signal<Account | null>(null);
   showConfirmModal = signal(false);
   deletingAccount = signal<Account | null>(null);
+
+  expandedAccountId = signal<number | null>(null);
+  accountTransactions = signal<Transaction[]>([]);
+  txLoading = signal(false);
 
   readonly accountTypes: AccountType[] = ['CHECKING', 'SAVINGS', 'CREDIT', 'INVESTMENT', 'CASH'];
 
@@ -58,6 +67,33 @@ export class AccountsComponent implements OnInit {
       if (!this.form.get('color')?.dirty) this.form.get('color')?.setValue(defaults.color, { emitEvent: false });
       if (!this.form.get('icon')?.dirty)  this.form.get('icon')?.setValue(defaults.icon, { emitEvent: false });
     });
+  }
+
+  toggleTransactions(account: Account): void {
+    if (this.expandedAccountId() === account.id) {
+      this.expandedAccountId.set(null);
+      this.accountTransactions.set([]);
+      return;
+    }
+    this.expandedAccountId.set(account.id);
+    this.txLoading.set(true);
+    this.accountTransactions.set([]);
+    this.txService.getAll({ accountId: account.id, size: 200 }).subscribe({
+      next: page => { this.accountTransactions.set(page.content); this.txLoading.set(false); },
+      error: () => this.txLoading.set(false)
+    });
+  }
+
+  txAmountColor(tx: Transaction): string {
+    if (tx.type === 'INCOME')   return '#1fd99a';
+    if (tx.type === 'EXPENSE')  return '#ff5a72';
+    return '#6e8fff';
+  }
+
+  txSign(tx: Transaction): string {
+    if (tx.type === 'INCOME')  return '+';
+    if (tx.type === 'EXPENSE') return '−';
+    return '⇄';
   }
 
   openForm(account?: Account): void {
