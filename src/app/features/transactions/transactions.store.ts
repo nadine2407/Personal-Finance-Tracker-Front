@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { TransactionsService } from './transactions.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Transaction, TransactionRequest, TransactionFilter, PageResponse } from '../../shared/models/transaction.model';
+import { Transaction, TransactionRequest, TransactionFilter, PageResponse } from '../../data/transaction.model';
 
 @Injectable({ providedIn: 'root' })
 export class TransactionsStore {

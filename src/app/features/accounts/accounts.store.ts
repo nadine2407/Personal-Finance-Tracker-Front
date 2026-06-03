@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { AccountsService } from './accounts.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Account, AccountRequest } from '../../shared/models/account.model';
+import { Account, AccountRequest } from '../../data/account.model';
 
 @Injectable({ providedIn: 'root' })
 export class AccountsStore {

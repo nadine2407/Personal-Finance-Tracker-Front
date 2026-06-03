@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { BudgetsService } from './budgets.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Budget, BudgetRequest, BudgetPageSummary } from '../../shared/models/budget.model';
+import { Budget, BudgetRequest, BudgetPageSummary } from '../../data/budget.model';
 
 @Injectable({ providedIn: 'root' })
 export class BudgetsStore {

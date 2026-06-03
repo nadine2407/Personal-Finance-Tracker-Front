@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Budget, BudgetRequest, BudgetPageSummary } from '../../shared/models/budget.model';
+import { Budget, BudgetRequest, BudgetPageSummary } from '../../data/budget.model';
 
 @Injectable({ providedIn: 'root' })
 export class BudgetsService {

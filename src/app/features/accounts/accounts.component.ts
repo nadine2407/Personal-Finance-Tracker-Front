@@ -7,9 +7,9 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { AccountsStore } from './accounts.store';
-import { Account, AccountType } from '../../shared/models/account.model';
+import { Account, AccountType } from '../../data/account.model';
 import { TransactionsService } from '../transactions/transactions.service';
-import { Transaction } from '../../shared/models/transaction.model';
+import { Transaction } from '../../data/transaction.model';
 
 @Component({
   selector: 'app-accounts',

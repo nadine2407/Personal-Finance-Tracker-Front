@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginRequest, RegisterRequest, AuthResponse, UserInfo } from '../../shared/models/auth.model';
+import { LoginRequest, RegisterRequest, AuthResponse, UserInfo } from '../../data/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

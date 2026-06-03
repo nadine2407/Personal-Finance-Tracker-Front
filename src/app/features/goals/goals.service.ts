@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Goal, GoalRequest, AllocationRequest } from '../../shared/models/goal.model';
+import { Goal, GoalRequest, AllocationRequest } from '../../data/goal.model';
 
 @Injectable({ providedIn: 'root' })
 export class GoalsService {

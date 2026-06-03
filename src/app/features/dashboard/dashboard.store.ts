@@ -3,8 +3,8 @@ import { forkJoin } from 'rxjs';
 import { DashboardService } from './dashboard.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { DashboardSummary, MonthlyChart } from '../../shared/models/dashboard.model';
-import { Transaction } from '../../shared/models/transaction.model';
+import { DashboardSummary, MonthlyChart } from '../../data/dashboard.model';
+import { Transaction } from '../../data/transaction.model';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardStore {

@@ -2,8 +2,8 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { GoalsService } from './goals.service';
 import { AccountsStore } from '../accounts/accounts.store';
 import { NotificationService } from '../../core/services/notification.service';
-import { Goal, GoalRequest, AllocationRequest } from '../../shared/models/goal.model';
-import { Account } from '../../shared/models/account.model';
+import { Goal, GoalRequest, AllocationRequest } from '../../data/goal.model';
+import { Account } from '../../data/account.model';
 
 export interface AccountGoalGroup {
   account: Account;

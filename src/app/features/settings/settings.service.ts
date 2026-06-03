@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse } from '../../shared/models/auth.model';
+import { AuthResponse } from '../../data/auth.model';
 
 export interface UpdateProfileRequest {
   firstName: string;

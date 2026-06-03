@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { CategoriesService } from './categories.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Category, CategoryRequest } from '../../shared/models/category.model';
+import { Category, CategoryRequest } from '../../data/category.model';
 
 @Injectable({ providedIn: 'root' })
 export class CategoriesStore {

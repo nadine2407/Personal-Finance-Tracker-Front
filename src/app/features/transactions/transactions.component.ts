@@ -8,7 +8,7 @@ import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { TransactionsStore } from './transactions.store';
 import { CategoriesStore } from '../categories/categories.store';
 import { AccountsStore } from '../accounts/accounts.store';
-import { Transaction, RecurrenceFrequency } from '../../shared/models/transaction.model';
+import { Transaction, RecurrenceFrequency } from '../../data/transaction.model';
 
 @Component({
   selector: 'app-transactions',

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Transaction, TransactionRequest, TransactionFilter, PageResponse } from '../../shared/models/transaction.model';
+import { Transaction, TransactionRequest, TransactionFilter, PageResponse } from '../../data/transaction.model';
 
 @Injectable({ providedIn: 'root' })
 export class TransactionsService {

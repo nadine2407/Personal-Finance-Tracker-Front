@@ -1,16 +1,18 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CategoriesStore } from './categories.store';
-import { Category } from '../../shared/models/category.model';
+import { Category } from '../../data/category.model';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    FormsModule,
     TranslateModule,
     PageHeaderComponent,
     EmptyStateComponent
@@ -21,6 +23,14 @@ import { Category } from '../../shared/models/category.model';
 export class CategoriesComponent implements OnInit {
   store = inject(CategoriesStore);
   private fb = inject(FormBuilder);
+
+  searchQuery = '';
+
+  get filteredCategories(): Category[] {
+    const q = this.searchQuery.toLowerCase().trim();
+    if (!q) return this.store.categories();
+    return this.store.categories().filter(c => c.name.toLowerCase().includes(q));
+  }
 
   showFormModal = signal(false);
   editingCat = signal<Category | null>(null);

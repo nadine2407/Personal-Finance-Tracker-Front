@@ -8,8 +8,8 @@ import { StatCardComponent } from '../../shared/components/stat-card/stat-card.c
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { BudgetsStore } from './budgets.store';
 import { CategoriesService } from '../categories/categories.service';
-import { BudgetStatusItem } from '../../shared/models/budget.model';
-import { Category } from '../../shared/models/category.model';
+import { BudgetStatusItem } from '../../data/budget.model';
+import { Category } from '../../data/category.model';
 
 @Component({
   selector: 'app-budgets',

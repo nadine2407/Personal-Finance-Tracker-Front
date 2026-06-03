@@ -8,7 +8,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { GoalsStore } from './goals.store';
 import { AccountsStore } from '../accounts/accounts.store';
-import { Goal } from '../../shared/models/goal.model';
+import { Goal } from '../../data/goal.model';
 
 @Component({
   selector: 'app-goals',
