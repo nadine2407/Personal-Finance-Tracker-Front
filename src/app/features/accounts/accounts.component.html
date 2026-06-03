@@ -51,9 +51,6 @@
               <div class="fw-bold" style="font-size:1.05rem" [style.color]="account.currentBalance < 0 ? '#ff5a72' : '#e4ecf7'">
                 {{ account.currentBalance | currencyFormat }}
               </div>
-              @if (account.initialBalance !== 0) {
-                <div style="font-size:.72rem;color:#617693">init. {{ account.initialBalance | currencyFormat }}</div>
-              }
             </div>
 
             <!-- Actions -->
@@ -172,10 +169,12 @@
               <label class="form-label">{{ 'common.name' | translate }}</label>
               <input class="form-control" formControlName="name" />
             </div>
-            <div class="col-12">
-              <label class="form-label">{{ 'accounts.initial_balance' | translate }}</label>
-              <input class="form-control" type="number" formControlName="initialBalance" min="0" step="0.01" />
-            </div>
+            @if (!editingAccount()) {
+              <div class="col-12">
+                <label class="form-label">{{ 'accounts.initial_balance' | translate }}</label>
+                <input class="form-control" type="number" formControlName="initialBalance" min="0" step="0.01" />
+              </div>
+            }
             <div class="col-6">
               <label class="form-label">{{ 'accounts.icon' | translate }}</label>
               <input class="form-control" formControlName="icon" maxlength="10" />

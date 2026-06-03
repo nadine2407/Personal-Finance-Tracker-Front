@@ -106,8 +106,10 @@ export class AccountsComponent implements OnInit {
         color: account.color ?? '#4f8ef7',
         icon: account.icon ?? '🏦'
       });
+      this.form.get('initialBalance')?.disable();
     } else {
       this.form.reset({ name: '', type: 'CHECKING', initialBalance: 0, color: '#4f8ef7', icon: '🏦' });
+      this.form.get('initialBalance')?.enable();
     }
     this.showFormModal.set(true);
   }
@@ -115,6 +117,7 @@ export class AccountsComponent implements OnInit {
   closeModal(): void {
     this.showFormModal.set(false);
     this.editingAccount.set(null);
+    this.form.get('initialBalance')?.enable();
   }
 
   submitForm(): void {
