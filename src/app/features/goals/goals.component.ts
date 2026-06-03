@@ -56,7 +56,6 @@ export class GoalsComponent implements OnInit {
     name:            ['', Validators.required],
     targetAmount:    [null as number | null, [Validators.required, Validators.min(0.01)]],
     allocatedAmount: [0 as number | null, [Validators.required, Validators.min(0)]],
-    deadline:        [''],
     description:     ['']
   });
 
@@ -75,13 +74,12 @@ export class GoalsComponent implements OnInit {
         name: goal.name,
         targetAmount: goal.targetAmount,
         allocatedAmount: goal.allocatedAmount,
-        deadline: goal.deadline ?? '',
         description: goal.description ?? ''
       });
       this.form.get('linkedAccountId')?.disable();
       this.form.get('allocatedAmount')?.disable();
     } else {
-      this.form.reset({ linkedAccountId: accountId ?? null, name: '', targetAmount: null, allocatedAmount: 0, deadline: '', description: '' });
+      this.form.reset({ linkedAccountId: accountId ?? null, name: '', targetAmount: null, allocatedAmount: 0, description: '' });
       this.form.get('linkedAccountId')?.enable();
       this.form.get('allocatedAmount')?.enable();
     }
@@ -98,7 +96,7 @@ export class GoalsComponent implements OnInit {
   submitForm(): void {
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();
-    const req = { name: raw.name!, targetAmount: raw.targetAmount!, deadline: raw.deadline || null, description: raw.description || null, linkedAccountId: raw.linkedAccountId ?? null, allocatedAmount: raw.allocatedAmount ?? 0 };
+    const req = { name: raw.name!, targetAmount: raw.targetAmount!, deadline: null, description: raw.description || null, linkedAccountId: raw.linkedAccountId ?? null, allocatedAmount: raw.allocatedAmount ?? 0 };
     const goal = this.editingGoal();
     if (goal) { this.store.update(goal.id, req); } else { this.store.create(req); }
     this.closeForm();
@@ -110,7 +108,8 @@ export class GoalsComponent implements OnInit {
     const group = this.store.goalsByAccount().find(g => g.account.id === goal.linkedAccountId);
     this.depositingGoal.set(goal);
     this.depositAmount.set(0);
-    this.depositMax.set(group ? Math.max(0, group.unallocated) : 0);
+    const remaining = Math.max(0, (goal.targetAmount ?? 0) - (goal.allocatedAmount ?? 0));
+    this.depositMax.set(group ? Math.min(Math.max(0, group.unallocated), remaining) : 0);
     this.showDepositModal.set(true);
   }
 

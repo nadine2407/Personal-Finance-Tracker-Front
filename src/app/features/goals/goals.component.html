@@ -101,15 +101,6 @@
                       }
                     </div>
 
-                    <!-- Deadline -->
-                    @if (goal.deadline) {
-                      @if (daysRemaining(goal.deadline); as days) {
-                        <div style="font-size:.72rem;margin-top:2px" [style.color]="days < 0 ? '#ff5a72' : '#617693'">
-                          <i class="bi bi-calendar3 me-1"></i>
-                          {{ days < 0 ? 'En retard' : (days + ' jours restants') }}
-                        </div>
-                      }
-                    }
                   </div>
 
                   <!-- Actions -->
@@ -198,10 +189,6 @@
                 <input class="form-control" type="number" formControlName="allocatedAmount" min="0" step="0.01" />
               </div>
             }
-            <div class="col-12">
-              <label class="form-label">{{ 'goals.deadline' | translate }}</label>
-              <input class="form-control" type="date" formControlName="deadline" />
-            </div>
             <div class="col-12">
               <label class="form-label">{{ 'common.description' | translate }}</label>
               <textarea class="form-control" formControlName="description" rows="2"></textarea>

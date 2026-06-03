@@ -40,7 +40,7 @@ export class AccountsComponent implements OnInit {
   accountTransactions = signal<Transaction[]>([]);
   txLoading = signal(false);
 
-  readonly accountTypes: AccountType[] = ['CHECKING', 'SAVINGS', 'CREDIT', 'INVESTMENT', 'CASH'];
+  readonly accountTypes: AccountType[] = ['CHECKING', 'SAVINGS'];
 
   readonly typeDefaults: Record<AccountType, { icon: string; color: string }> = {
     CHECKING:   { icon: '🏦', color: '#4f8ef7' },
