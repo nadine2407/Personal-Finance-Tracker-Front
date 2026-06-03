@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { GoalsService } from './goals.service';
 import { AccountsStore } from '../accounts/accounts.store';
 import { NotificationService } from '../../core/services/notification.service';
-import { Goal, GoalRequest, AllocationRequest } from '../../data/goal.model';
+import { Goal, GoalRequest, AllocationRequest, DebitRequest } from '../../data/goal.model';
 import { Account } from '../../data/account.model';
 
 export interface AccountGoalGroup {
@@ -87,6 +87,17 @@ export class GoalsStore {
   movePriority(id: number, direction: 'up' | 'down'): void {
     this.service.movePriority(id, direction).subscribe({
       next: () => this.load(),
+      error: () => this.notification.error('common.error_save')
+    });
+  }
+
+  debit(id: number, request: DebitRequest): void {
+    this.service.debit(id, request).subscribe({
+      next: updated => {
+        this.goals.update(list => list.map(g => g.id === id ? updated : g));
+        this.notification.success('common.success_save');
+        this.accountsStore.load();
+      },
       error: () => this.notification.error('common.error_save')
     });
   }

@@ -6,6 +6,8 @@ export interface Goal {
   deadline: string | null;
   description: string | null;
   completed: boolean;
+  debited: boolean;
+  debitedAt: string | null;
   progressPercent: number;
   remainingAmount: number;
   linkedAccountId: number | null;
@@ -26,4 +28,8 @@ export interface GoalRequest {
 
 export interface AllocationRequest {
   allocatedAmount: number;
+}
+
+export interface DebitRequest {
+  checkingAccountId: number;
 }

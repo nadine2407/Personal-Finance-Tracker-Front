@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Goal, GoalRequest, AllocationRequest } from '../../data/goal.model';
+import { Goal, GoalRequest, AllocationRequest, DebitRequest } from '../../data/goal.model';
 
 @Injectable({ providedIn: 'root' })
 export class GoalsService {
@@ -27,6 +27,10 @@ export class GoalsService {
 
   movePriority(id: number, direction: 'up' | 'down'): Observable<void> {
     return this.http.patch<void>(`${this.base}/${id}/priority?direction=${direction}`, {});
+  }
+
+  debit(id: number, request: DebitRequest): Observable<Goal> {
+    return this.http.patch<Goal>(`${this.base}/${id}/debit`, request);
   }
 
   delete(id: number): Observable<void> {

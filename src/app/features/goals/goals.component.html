@@ -52,7 +52,9 @@
           </div>
         } @else {
           <div class="d-flex flex-column gap-2 pt-1">
-            @for (goal of group.goals; track goal.id; let first=$first; let last=$last; let idx=$index) {
+
+            <!-- Objectifs actifs (avec priorité) -->
+            @for (goal of activeGoals(group); track goal.id; let first=$first; let last=$last; let idx=$index) {
               <div class="rounded-3 p-3" [style]="goalItemStyle(idx)">
                 <div class="d-flex align-items-start gap-2">
 
@@ -87,8 +89,6 @@
                         <span style="color:#617693"> / {{ goal.targetAmount | currencyFormat }}</span>
                       </span>
                     </div>
-
-                    <!-- Barre de progression -->
                     <div class="progress rounded-pill mb-1" style="height:6px">
                       <div class="progress-bar rounded-pill"
                            [style.width.%]="goal.progressPercent"
@@ -100,29 +100,78 @@
                         <span>{{ goal.remainingAmount | currencyFormat }} restants</span>
                       }
                     </div>
-
                   </div>
 
                   <!-- Actions -->
                   <div class="d-flex flex-column gap-1">
-                    <button class="btn btn-sm px-2 py-1"
-                            style="background:rgba(31,217,154,0.12);color:#1fd99a;border:1px solid rgba(31,217,154,0.25);font-size:.75rem"
-                            (click)="openDeposit(goal)">
-                      <i class="bi bi-arrow-down-circle me-1"></i>{{ 'goals.deposit' | translate }}
-                    </button>
-                    @if (goal.allocatedAmount > 0) {
+                    @if (!goal.completed) {
+                      <button class="btn btn-sm px-2 py-1"
+                              style="background:rgba(31,217,154,0.12);color:#1fd99a;border:1px solid rgba(31,217,154,0.25);font-size:.75rem"
+                              (click)="openDeposit(goal)">
+                        <i class="bi bi-arrow-down-circle me-1"></i>{{ 'goals.deposit' | translate }}
+                      </button>
+                      @if (goal.allocatedAmount > 0) {
+                        <button class="btn btn-sm px-2 py-1"
+                                style="background:rgba(245,166,35,0.12);color:#f5a623;border:1px solid rgba(245,166,35,0.25);font-size:.75rem"
+                                (click)="openWithdraw(goal)">
+                          <i class="bi bi-arrow-up-circle me-1"></i>{{ 'goals.withdraw' | translate }}
+                        </button>
+                      }
+                      <div class="d-flex gap-1 mt-1">
+                        <button class="btn btn-sm p-1"
+                                style="background:#1c2a42;border:1px solid rgba(255,255,255,0.07);color:#a8bcd4;font-size:.75rem"
+                                (click)="openForm(undefined, goal)">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm p-1"
+                                style="background:rgba(255,90,114,0.1);border:1px solid rgba(255,90,114,0.25);color:#ff5a72;font-size:.75rem"
+                                (click)="confirmDelete(goal)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    } @else {
                       <button class="btn btn-sm px-2 py-1"
                               style="background:rgba(245,166,35,0.12);color:#f5a623;border:1px solid rgba(245,166,35,0.25);font-size:.75rem"
                               (click)="openWithdraw(goal)">
                         <i class="bi bi-arrow-up-circle me-1"></i>{{ 'goals.withdraw' | translate }}
                       </button>
-                    }
-                    <div class="d-flex gap-1 mt-1">
-                      <button class="btn btn-sm p-1"
-                              style="background:#1c2a42;border:1px solid rgba(255,255,255,0.07);color:#a8bcd4;font-size:.75rem"
-                              (click)="openForm(undefined, goal)">
-                        <i class="bi bi-pencil"></i>
+                      <button class="btn btn-sm px-2 py-1"
+                              style="background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.35);font-size:.75rem"
+                              (click)="openTransactionModal(goal)">
+                        <i class="bi bi-arrow-left-right me-1"></i>Virement
                       </button>
+                      <div class="d-flex gap-1 mt-1">
+                        <button class="btn btn-sm p-1"
+                                style="background:#1c2a42;border:1px solid rgba(255,255,255,0.07);color:#a8bcd4;font-size:.75rem"
+                                (click)="openForm(undefined, goal)">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm p-1"
+                                style="background:rgba(255,90,114,0.1);border:1px solid rgba(255,90,114,0.25);color:#ff5a72;font-size:.75rem"
+                                (click)="confirmDelete(goal)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Objectifs virés (sans priorité, en bas) -->
+            @if (debitedGoals(group).length > 0) {
+              <div class="mt-1" style="border-top:1px solid rgba(255,255,255,0.05);padding-top:8px">
+                @for (goal of debitedGoals(group); track goal.id) {
+                  <div class="rounded-3 p-3 mb-2"
+                       style="background:#152035;border:1px solid rgba(255,255,255,0.05);opacity:0.5;filter:grayscale(0.4)">
+                    <div class="d-flex align-items-center gap-2">
+                      <div style="min-width:28px"></div>
+                      <div class="flex-grow-1">
+                        <span class="fw-semibold" style="font-size:.9rem;color:#94a3b8">
+                          {{ goal.name }}
+                          <span class="ms-1" style="font-size:.7rem;font-weight:700">✓ VIRÉ</span>
+                        </span>
+                      </div>
                       <button class="btn btn-sm p-1"
                               style="background:rgba(255,90,114,0.1);border:1px solid rgba(255,90,114,0.25);color:#ff5a72;font-size:.75rem"
                               (click)="confirmDelete(goal)">
@@ -130,10 +179,10 @@
                       </button>
                     </div>
                   </div>
-
-                </div>
+                }
               </div>
             }
+
           </div>
         }
       </div>
@@ -304,6 +353,52 @@
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" (click)="showConfirmModal.set(false)">{{ 'common.cancel' | translate }}</button>
           <button class="btn btn-danger btn-sm" (click)="deleteConfirmed()">{{ 'common.delete' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Modal transaction depuis objectif atteint ────────────────────────────── -->
+@if (showTransactionModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.6)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-arrow-left-right me-2" style="color:#818cf8"></i>Virement vers compte courant
+            @if (transactionGoal()) {
+              <span style="color:#617693;font-weight:400"> — {{ transactionGoal()!.name }}</span>
+            }
+          </h5>
+          <button class="btn-close btn-sm" (click)="showTransactionModal.set(false)"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Compte courant destinataire</label>
+            <select class="form-select"
+                    [value]="transactionAccountId()"
+                    (change)="transactionAccountId.set(+$any($event.target).value)">
+              @for (a of checkingAccounts(); track a.id) {
+                <option [value]="a.id">{{ a.icon ?? '🏦' }} {{ a.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="rounded-3 p-3" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2)">
+            <div class="d-flex justify-content-between small">
+              <span style="color:#617693">Montant viré et débité</span>
+              <strong style="color:#818cf8">{{ transactionGoal()?.allocatedAmount | currencyFormat }}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="showTransactionModal.set(false)">{{ 'common.cancel' | translate }}</button>
+          <button class="btn btn-sm px-4"
+                  style="background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.35)"
+                  (click)="submitTransaction()"
+                  [disabled]="!transactionAccountId()">
+            <i class="bi bi-arrow-left-right me-1"></i>Effectuer le virement
+          </button>
         </div>
       </div>
     </div>

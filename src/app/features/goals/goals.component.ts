@@ -49,6 +49,12 @@ export class GoalsComponent implements OnInit {
   showConfirmModal = signal(false);
   deletingGoal = signal<Goal | null>(null);
 
+  // Transaction depuis objectif atteint
+  showTransactionModal = signal(false);
+  transactionGoal = signal<Goal | null>(null);
+  transactionAccountId = signal<number | null>(null);
+  transactionAmount = signal<number>(0);
+
   private readonly priorityColors = ['#ef4444', '#f97316', '#3b82f6', '#8b5cf6', '#10b981', '#6b7280'];
 
   form = this.fb.group({
@@ -190,5 +196,27 @@ export class GoalsComponent implements OnInit {
   }
 
   savingsAccounts() { return this.accountsStore.accounts().filter(a => a.type === 'SAVINGS'); }
+  checkingAccounts() { return this.accountsStore.accounts().filter(a => a.type === 'CHECKING'); }
   hasAnySavingsAccount(): boolean { return this.savingsAccounts().length > 0; }
+
+  activeGoals(group: import('./goals.store').AccountGoalGroup) { return group.goals.filter(g => !g.debited); }
+  debitedGoals(group: import('./goals.store').AccountGoalGroup) { return group.goals.filter(g => g.debited); }
+
+  // ── Transaction depuis objectif atteint ──────────────────────────────────
+
+  openTransactionModal(goal: Goal): void {
+    this.transactionGoal.set(goal);
+    this.transactionAccountId.set(this.checkingAccounts()[0]?.id ?? null);
+    this.transactionAmount.set(goal.allocatedAmount ?? 0);
+    this.showTransactionModal.set(true);
+  }
+
+  submitTransaction(): void {
+    const goal = this.transactionGoal();
+    const accountId = this.transactionAccountId();
+    if (!goal || !accountId) return;
+    this.store.debit(goal.id, { checkingAccountId: accountId });
+    this.showTransactionModal.set(false);
+    this.transactionGoal.set(null);
+  }
 }
