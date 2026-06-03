@@ -290,37 +290,54 @@
               </div>
             }
             <div class="col-md-6">
-              <label class="form-label">{{ isTransfer ? ('transactions.source_account' | translate) : ('transactions.account' | translate) }}</label>
-              <select class="form-select" formControlName="accountId">
-                <option [value]="null">{{ 'transactions.no_account' | translate }}</option>
-                @for (acc of accountsStore.accounts(); track acc.id) {
-                  <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
-                }
-              </select>
-            </div>
-            @if (isTransfer) {
-              <div class="col-md-6">
-                <label class="form-label">{{ 'transactions.destination_account' | translate }}</label>
-                <select class="form-select" formControlName="destinationAccountId">
+              <label class="form-label">
+                {{ isTransfer ? ('transactions.source_account' | translate) : ('transactions.account' | translate) }}
+                @if (editingTx()) { <span class="ms-1 text-muted" style="font-size:0.75rem">🔒</span> }
+              </label>
+              @if (editingTx()) {
+                <input class="form-control" [value]="getAccountName(form.getRawValue().accountId)" readonly />
+              } @else {
+                <select class="form-select" formControlName="accountId">
                   <option [value]="null">{{ 'transactions.no_account' | translate }}</option>
                   @for (acc of accountsStore.accounts(); track acc.id) {
                     <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
                   }
                 </select>
+              }
+            </div>
+            @if (isTransfer) {
+              <div class="col-md-6">
+                <label class="form-label">
+                  {{ 'transactions.destination_account' | translate }}
+                  @if (editingTx()) { <span class="ms-1 text-muted" style="font-size:0.75rem">🔒</span> }
+                </label>
+                @if (editingTx()) {
+                  <input class="form-control" [value]="getAccountName(form.getRawValue().destinationAccountId)" readonly />
+                } @else {
+                  <select class="form-select" formControlName="destinationAccountId">
+                    <option [value]="null">{{ 'transactions.no_account' | translate }}</option>
+                    @for (acc of accountsStore.accounts(); track acc.id) {
+                      <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
+                    }
+                  </select>
+                }
               </div>
             }
             @if (showTransitAccount) {
               <div class="col-md-6">
-                <label class="form-label">{{ 'transactions.transit_account' | translate }}</label>
-                <select class="form-select" formControlName="transitAccountId">
-                  <option [value]="null">{{ 'transactions.no_transit' | translate }}</option>
+                <label class="form-label">
+                  {{ 'transactions.transit_account' | translate }}
+                  <span class="text-danger ms-1">*</span>
+                </label>
+                <select class="form-select"
+                        formControlName="transitAccountId"
+                        [class.is-invalid]="form.get('transitAccountId')?.invalid && form.get('transitAccountId')?.touched">
+                  <option [value]="null" disabled>— Sélectionner un compte courant —</option>
                   @for (acc of checkingAccounts; track acc.id) {
                     <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
                   }
                 </select>
-                <div class="form-text text-muted">
-                  {{ 'transactions.transit_hint' | translate }}
-                </div>
+                <div class="invalid-feedback">Un compte courant de transit est obligatoire.</div>
               </div>
             }
             <div class="col-md-6">

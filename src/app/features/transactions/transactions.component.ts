@@ -110,16 +110,30 @@ export class TransactionsComponent implements OnInit {
     if (this.accountsStore.accounts().length === 0) {
       this.accountsStore.load();
     }
-    this.form.get('type')!.valueChanges.subscribe(type => {
-      const categoryCtrl = this.form.get('categoryId')!;
-      if (type === 'TRANSFER') {
-        categoryCtrl.clearValidators();
-        categoryCtrl.setValue(null);
-      } else {
-        categoryCtrl.setValidators(Validators.required);
-      }
-      categoryCtrl.updateValueAndValidity();
-    });
+    this.form.get('type')!.valueChanges.subscribe(() => this.updateDynamicValidators());
+    this.form.get('accountId')!.valueChanges.subscribe(() => this.updateDynamicValidators());
+  }
+
+  private updateDynamicValidators(): void {
+    const categoryCtrl = this.form.get('categoryId')!;
+    const transitCtrl = this.form.get('transitAccountId')!;
+    const type = this.form.get('type')!.value;
+
+    if (type === 'TRANSFER') {
+      categoryCtrl.clearValidators();
+      categoryCtrl.setValue(null);
+    } else {
+      categoryCtrl.setValidators(Validators.required);
+    }
+    categoryCtrl.updateValueAndValidity({ emitEvent: false });
+
+    if (this.showTransitAccount) {
+      transitCtrl.setValidators(Validators.required);
+    } else {
+      transitCtrl.clearValidators();
+      transitCtrl.setValue(null);
+    }
+    transitCtrl.updateValueAndValidity({ emitEvent: false });
   }
 
   getAccountName(id: number | null): string {
@@ -177,6 +191,8 @@ export class TransactionsComponent implements OnInit {
         recurring: tx.recurring ?? false,
         recurrenceFrequency: tx.recurrenceFrequency ?? null
       });
+      this.form.get('accountId')?.disable();
+      this.form.get('destinationAccountId')?.disable();
     } else {
       this.form.reset({
         type: 'INCOME',
@@ -191,6 +207,8 @@ export class TransactionsComponent implements OnInit {
         recurring: false,
         recurrenceFrequency: null
       });
+      this.form.get('accountId')?.enable();
+      this.form.get('destinationAccountId')?.enable();
     }
     this.showFormModal.set(true);
   }
@@ -198,6 +216,8 @@ export class TransactionsComponent implements OnInit {
   closeModal(): void {
     this.showFormModal.set(false);
     this.editingTx.set(null);
+    this.form.get('accountId')?.enable();
+    this.form.get('destinationAccountId')?.enable();
   }
 
   submitForm(): void {
