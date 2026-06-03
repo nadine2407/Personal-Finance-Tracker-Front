@@ -49,4 +49,8 @@ export class TransactionsService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+
+  deleteFuture(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}/future`);
+  }
 }

@@ -1,4 +1,4 @@
-export type BudgetStatus = 'ON' | 'WARN' | 'OVER';
+export type BudgetStatus = 'ON' | 'WARN' | 'OVER' | 'UNPLANNED';
 
 export interface Budget {
   id: number;
@@ -19,7 +19,7 @@ export interface BudgetRequest {
 }
 
 export interface BudgetStatusItem {
-  id: number;
+  id: number | null;
   categoryId: number;
   categoryName: string;
   categoryColor: string | null;

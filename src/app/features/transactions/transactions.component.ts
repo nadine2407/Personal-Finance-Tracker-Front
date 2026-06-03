@@ -35,6 +35,7 @@ export class TransactionsComponent implements OnInit {
   editingTx = signal<Transaction | null>(null);
   showConfirmModal = signal(false);
   deletingTx = signal<Transaction | null>(null);
+  showRecurringDeleteModal = signal(false);
   showFilters = signal(false);
   showNoteModal = signal(false);
   notingTx = signal<Transaction | null>(null);
@@ -46,8 +47,8 @@ export class TransactionsComponent implements OnInit {
     categoryId: [''],
     fromAccountId: [null as number | null],
     toAccountId: [null as number | null],
-    startDate: ['2026-06-01'],
-    endDate: ['2026-06-30'],
+    startDate: [null as string | null],
+    endDate: [null as string | null],
     minAmount: [null as number | null],
     maxAmount: [null as number | null],
     recurring: [false]
@@ -64,13 +65,26 @@ export class TransactionsComponent implements OnInit {
     description: [''],
     notes: [''],
     recurring: [false],
-    recurrenceFrequency: [null as RecurrenceFrequency | null]
+    recurrenceFrequency: [null as RecurrenceFrequency | null],
+    recurrenceEndDate: [null as string | null]
   });
 
-  readonly frequencies: RecurrenceFrequency[] = ['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
+  readonly frequencies: RecurrenceFrequency[] = ['MONTHLY'];
 
   get isRecurring() { return this.form.get('recurring')?.value; }
   get isTransfer() { return this.form.get('type')?.value === 'TRANSFER'; }
+
+  get maxRecurrenceEndDate(): string {
+    const date = this.form.get('transactionDate')?.value;
+    if (!date) return '';
+    const d = new Date(date);
+    d.setFullYear(d.getFullYear() + 1);
+    return d.toISOString().split('T')[0];
+  }
+
+  get defaultRecurrenceEndDate(): string {
+    return this.maxRecurrenceEndDate;
+  }
 
   get showTransitAccount(): boolean {
     if (this.form.get('type')?.value !== 'EXPENSE') return false;
@@ -82,6 +96,18 @@ export class TransactionsComponent implements OnInit {
 
   get checkingAccounts() {
     return this.accountsStore.accounts().filter(a => a.type === 'CHECKING');
+  }
+
+  get destinationAccounts() {
+    const sourceId = this.form.get('accountId')?.value;
+    return this.accountsStore.accounts().filter(a => !sourceId || a.id !== +sourceId);
+  }
+
+  get sameAccountError(): boolean {
+    if (!this.isTransfer) return false;
+    const src = this.form.get('accountId')?.value;
+    const dst = this.form.get('destinationAccountId')?.value;
+    return !!src && !!dst && +src === +dst;
   }
 
   get insufficientFunds(): boolean {
@@ -112,12 +138,23 @@ export class TransactionsComponent implements OnInit {
     }
     this.form.get('type')!.valueChanges.subscribe(() => this.updateDynamicValidators());
     this.form.get('accountId')!.valueChanges.subscribe(() => this.updateDynamicValidators());
+    this.form.get('recurring')!.valueChanges.subscribe(() => this.updateDynamicValidators());
+    this.form.get('transactionDate')!.valueChanges.subscribe(date => {
+      if (this.form.get('recurring')?.value && date) {
+        const d = new Date(date);
+        d.setFullYear(d.getFullYear() + 1);
+        this.form.get('recurrenceEndDate')?.setValue(d.toISOString().split('T')[0], { emitEvent: false });
+      }
+    });
   }
 
   private updateDynamicValidators(): void {
     const categoryCtrl = this.form.get('categoryId')!;
     const transitCtrl = this.form.get('transitAccountId')!;
+    const freqCtrl = this.form.get('recurrenceFrequency')!;
+    const endDateCtrl = this.form.get('recurrenceEndDate')!;
     const type = this.form.get('type')!.value;
+    const recurring = this.form.get('recurring')!.value;
 
     if (type === 'TRANSFER') {
       categoryCtrl.clearValidators();
@@ -134,6 +171,21 @@ export class TransactionsComponent implements OnInit {
       transitCtrl.setValue(null);
     }
     transitCtrl.updateValueAndValidity({ emitEvent: false });
+
+    if (recurring) {
+      freqCtrl.setValidators(Validators.required);
+      endDateCtrl.setValidators(Validators.required);
+      if (!endDateCtrl.value) {
+        endDateCtrl.setValue(this.defaultRecurrenceEndDate, { emitEvent: false });
+      }
+    } else {
+      freqCtrl.clearValidators();
+      freqCtrl.setValue(null);
+      endDateCtrl.clearValidators();
+      endDateCtrl.setValue(null);
+    }
+    freqCtrl.updateValueAndValidity({ emitEvent: false });
+    endDateCtrl.updateValueAndValidity({ emitEvent: false });
   }
 
   getAccountName(id: number | null): string {
@@ -162,7 +214,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   resetFilter(): void {
-    this.filterForm.reset({ startDate: '2026-06-01', endDate: '2026-06-30', recurring: false });
+    this.filterForm.reset({ startDate: null, endDate: null, recurring: false });
     this.applyFilter();
   }
 
@@ -205,7 +257,8 @@ export class TransactionsComponent implements OnInit {
         description: '',
         notes: '',
         recurring: false,
-        recurrenceFrequency: null
+        recurrenceFrequency: null,
+        recurrenceEndDate: null
       });
       this.form.get('accountId')?.enable();
       this.form.get('destinationAccountId')?.enable();
@@ -221,12 +274,11 @@ export class TransactionsComponent implements OnInit {
   }
 
   submitForm(): void {
-    if (this.form.invalid || this.insufficientFunds) return;
-    const { type, amount, transactionDate, categoryId, accountId, destinationAccountId, transitAccountId, description, notes, recurring, recurrenceFrequency } = this.form.getRawValue();
+    if (this.form.invalid || this.insufficientFunds || this.sameAccountError) return;
+    const { type, amount, transactionDate, categoryId, accountId, destinationAccountId, transitAccountId, description, notes, recurring, recurrenceFrequency, recurrenceEndDate } = this.form.getRawValue();
 
     const tx = this.editingTx();
 
-    // Dépense depuis un compte Épargne avec compte de transit : 2 opérations atomiques
     if (type === 'EXPENSE' && this.showTransitAccount && transitAccountId && !tx) {
       this.store.createTransit(
         {
@@ -239,7 +291,8 @@ export class TransactionsComponent implements OnInit {
           description: description ? `Transit – ${description}` : 'Transit',
           notes: null,
           recurring: false,
-          recurrenceFrequency: null
+          recurrenceFrequency: null,
+          recurrenceEndDate: null
         },
         {
           type: 'EXPENSE',
@@ -251,7 +304,8 @@ export class TransactionsComponent implements OnInit {
           description: description || null,
           notes: notes || null,
           recurring: recurring ?? false,
-          recurrenceFrequency: recurring ? recurrenceFrequency : null
+          recurrenceFrequency: recurring ? recurrenceFrequency : null,
+          recurrenceEndDate: recurring ? (recurrenceEndDate || null) : null
         }
       );
     } else {
@@ -265,7 +319,8 @@ export class TransactionsComponent implements OnInit {
         description: description || null,
         notes: notes || null,
         recurring: recurring ?? false,
-        recurrenceFrequency: recurring ? recurrenceFrequency : null
+        recurrenceFrequency: recurring ? recurrenceFrequency : null,
+        recurrenceEndDate: recurring ? (recurrenceEndDate || null) : null
       };
       if (tx) {
         this.store.update(tx.id, request);
@@ -297,13 +352,31 @@ export class TransactionsComponent implements OnInit {
 
   confirmDelete(tx: Transaction): void {
     this.deletingTx.set(tx);
-    this.showConfirmModal.set(true);
+    if (tx.recurrenceGroupId) {
+      this.showRecurringDeleteModal.set(true);
+    } else {
+      this.showConfirmModal.set(true);
+    }
   }
 
   deleteConfirmed(): void {
     const tx = this.deletingTx();
     if (tx) this.store.delete(tx.id);
     this.showConfirmModal.set(false);
+    this.deletingTx.set(null);
+  }
+
+  deleteOnlyThis(): void {
+    const tx = this.deletingTx();
+    if (tx) this.store.delete(tx.id);
+    this.showRecurringDeleteModal.set(false);
+    this.deletingTx.set(null);
+  }
+
+  deleteFutureAll(): void {
+    const tx = this.deletingTx();
+    if (tx) this.store.deleteFuture(tx.id);
+    this.showRecurringDeleteModal.set(false);
     this.deletingTx.set(null);
   }
 }

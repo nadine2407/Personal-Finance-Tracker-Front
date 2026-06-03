@@ -21,6 +21,8 @@ export interface Transaction {
   destinationAccountId: number | null;
   recurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
+  recurrenceGroupId: string | null;
+  recurrenceEndDate: string | null;
   hidden: boolean;
 }
 
@@ -35,6 +37,7 @@ export interface TransactionRequest {
   destinationAccountId: number | null;
   recurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
+  recurrenceEndDate: string | null;
 }
 
 export interface TransactionFilter {

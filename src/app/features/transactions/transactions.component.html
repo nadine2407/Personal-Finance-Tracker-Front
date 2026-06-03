@@ -314,12 +314,16 @@
                 @if (editingTx()) {
                   <input class="form-control" [value]="getAccountName(form.getRawValue().destinationAccountId)" readonly />
                 } @else {
-                  <select class="form-select" formControlName="destinationAccountId">
+                  <select class="form-select" formControlName="destinationAccountId"
+                          [class.is-invalid]="sameAccountError">
                     <option [value]="null">{{ 'transactions.no_account' | translate }}</option>
-                    @for (acc of accountsStore.accounts(); track acc.id) {
+                    @for (acc of destinationAccounts; track acc.id) {
                       <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
                     }
                   </select>
+                  @if (sameAccountError) {
+                    <div class="invalid-feedback d-block">Le compte source et le compte destination doivent être différents.</div>
+                  }
                 }
               </div>
             }
@@ -362,6 +366,15 @@
                     <option [value]="f">{{ 'transactions.freq_' + f.toLowerCase() | translate }}</option>
                   }
                 </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">
+                  {{ 'transactions.recurrence_end_date' | translate }}
+                  <span class="text-muted ms-1" style="font-size:.75rem">(max 1 an)</span>
+                </label>
+                <input class="form-control" type="date"
+                       formControlName="recurrenceEndDate"
+                       [max]="maxRecurrenceEndDate" />
               </div>
             }
           </form>
@@ -407,6 +420,43 @@
         <div class="modal-footer">
           <button class="btn btn-secondary btn-sm" (click)="showConfirmModal.set(false)">{{ 'common.cancel' | translate }}</button>
           <button class="btn btn-danger btn-sm" (click)="deleteConfirmed()">{{ 'common.delete' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showRecurringDeleteModal()) {
+  <div class="modal d-block" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-arrow-repeat me-2 text-primary"></i>Supprimer une récurrence
+          </h5>
+          <button class="btn-close" (click)="showRecurringDeleteModal.set(false)"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-3">Cette transaction fait partie d'une série récurrente. Que voulez-vous faire ?</p>
+          <div class="d-flex flex-column gap-2">
+            <button class="btn btn-outline-danger text-start d-flex align-items-start gap-3 p-3" (click)="deleteOnlyThis()">
+              <i class="bi bi-x-circle-fill mt-1 flex-shrink-0" style="color:#ff5a72"></i>
+              <div>
+                <div class="fw-semibold">Supprimer cette occurrence seulement</div>
+                <div class="small text-muted">Les autres occurrences de la série ne seront pas affectées.</div>
+              </div>
+            </button>
+            <button class="btn btn-outline-danger text-start d-flex align-items-start gap-3 p-3" (click)="deleteFutureAll()">
+              <i class="bi bi-calendar-x-fill mt-1 flex-shrink-0" style="color:#ff5a72"></i>
+              <div>
+                <div class="fw-semibold">Supprimer cette occurrence et toutes les suivantes</div>
+                <div class="small text-muted">Les occurrences passées seront conservées.</div>
+              </div>
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" (click)="showRecurringDeleteModal.set(false)">{{ 'common.cancel' | translate }}</button>
         </div>
       </div>
     </div>

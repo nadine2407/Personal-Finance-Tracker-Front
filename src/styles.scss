@@ -185,6 +185,16 @@ h1, h2, h3, h4, h5, h6 {
     background: linear-gradient(160deg, rgba(110,143,255,0.07) 0%, var(--paper) 55%) !important;
     box-shadow: 0 0 24px var(--primary-glow), 0 2px 8px rgba(0,0,0,0.4);
   }
+  &--primary {
+    border-top-color: var(--primary) !important;
+    background: linear-gradient(160deg, rgba(110,143,255,0.07) 0%, var(--paper) 55%) !important;
+    box-shadow: 0 0 24px var(--primary-glow), 0 2px 8px rgba(0,0,0,0.4);
+  }
+  &--danger {
+    border-top-color: var(--neg) !important;
+    background: linear-gradient(160deg, rgba(255,90,114,0.07) 0%, var(--paper) 55%) !important;
+    box-shadow: 0 0 24px var(--neg-glow), 0 2px 8px rgba(0,0,0,0.4);
+  }
 
   &__label {
     font-family: var(--mono);

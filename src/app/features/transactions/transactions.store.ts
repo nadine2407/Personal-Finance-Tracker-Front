@@ -79,4 +79,11 @@ export class TransactionsStore {
       error: () => this.notification.error('common.error_delete')
     });
   }
+
+  deleteFuture(id: number): void {
+    this.service.deleteFuture(id).subscribe({
+      next: () => { this.notification.success('common.success_delete'); this.load(); },
+      error: () => this.notification.error('common.error_delete')
+    });
+  }
 }

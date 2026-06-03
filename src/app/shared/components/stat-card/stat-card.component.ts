@@ -12,7 +12,7 @@ import { CurrencyFormatPipe } from '../../pipes/currency-format.pipe';
         <div class="stat-card__label">{{ labelKey | translate }}</div>
         <div class="stat-card__value"
              [class.pos]="colorClass==='income' || colorClass==='savings'"
-             [class.neg]="colorClass==='expense'">
+             [class.neg]="colorClass==='expense' || colorClass==='danger'">
           {{ value | currencyFormat }}
         </div>
       </div>

@@ -58,9 +58,12 @@ export class BudgetsComponent implements OnInit {
   openForm(item?: BudgetStatusItem): void {
     this.categoriesService.getAll().subscribe(cats => {
       this.categories.set(cats);
-      this.editingItem.set(item ?? null);
-      if (item) {
+      const isUnplanned = item?.status === 'UNPLANNED';
+      this.editingItem.set(isUnplanned ? null : (item ?? null));
+      if (item && !isUnplanned) {
         this.form.patchValue({ categoryId: item.categoryId, amount: item.budgetAmount });
+      } else if (item && isUnplanned) {
+        this.form.reset({ categoryId: item.categoryId, amount: null });
       } else {
         this.form.reset({ categoryId: null, amount: null });
       }
@@ -83,7 +86,7 @@ export class BudgetsComponent implements OnInit {
       year: this.store.currentYear()
     };
     const item = this.editingItem();
-    if (item) {
+    if (item && item.id != null) {
       this.store.update(item.id, request);
     } else {
       this.store.create(request);
@@ -98,7 +101,7 @@ export class BudgetsComponent implements OnInit {
 
   deleteConfirmed(): void {
     const item = this.deletingItem();
-    if (item) this.store.delete(item.id);
+    if (item && item.id != null) this.store.delete(item.id);
     this.showConfirmModal.set(false);
     this.deletingItem.set(null);
   }
