@@ -13,47 +13,118 @@
   </div>
   @if (showFilters()) {
     <div class="card-body">
-      <form [formGroup]="filterForm" class="row g-2">
-        <div class="col-md-4">
-          <input class="form-control form-control-sm" formControlName="search" [placeholder]="'common.search' | translate" />
+      <form [formGroup]="filterForm" class="row g-3">
+
+        <!-- Recherche -->
+        <div class="col-12">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input class="form-control" formControlName="search" [placeholder]="'common.search' | translate" />
+          </div>
         </div>
-        <div class="col-md-2">
+
+        <!-- Type -->
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold mb-1">{{ 'transactions.type' | translate }}</label>
           <select class="form-select form-select-sm" formControlName="type">
             <option value="">{{ 'common.all' | translate }}</option>
             <option value="INCOME">{{ 'transactions.type_income' | translate }}</option>
             <option value="EXPENSE">{{ 'transactions.type_expense' | translate }}</option>
+            <option value="TRANSFER">{{ 'transactions.type_transfer' | translate }}</option>
           </select>
         </div>
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" formControlName="categoryId">
-            <option value="">{{ 'common.all' | translate }}</option>
-            @for (cat of categoriesStore.categories(); track cat.id) {
-              <option [value]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="col-md-3">
-          <input class="form-control form-control-sm" type="date" formControlName="startDate" />
-        </div>
-        <div class="col-md-3">
-          <input class="form-control form-control-sm" type="date" formControlName="endDate" />
-        </div>
-        <div class="col-md-2">
-          <input class="form-control form-control-sm" type="number" formControlName="minAmount" placeholder="Montant min" min="0" />
-        </div>
-        <div class="col-md-2">
-          <input class="form-control form-control-sm" type="number" formControlName="maxAmount" placeholder="Montant max" min="0" />
-        </div>
-        <div class="col-md-3 d-flex align-items-center gap-3">
-          <div class="form-check form-check-sm mb-0">
+
+        <!-- Catégorie (si pas virement) -->
+        @if (filterType !== 'TRANSFER') {
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold mb-1">{{ 'common.category' | translate }}</label>
+            <select class="form-select form-select-sm" formControlName="categoryId">
+              <option value="">{{ 'common.all' | translate }}</option>
+              @for (cat of categoriesStore.categories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.icon ?? '' }} {{ cat.name }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Comptes source / destination (si virement) -->
+        @if (filterType === 'TRANSFER') {
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold mb-1">{{ 'transactions.source_account' | translate }}</label>
+            <select class="form-select form-select-sm" formControlName="fromAccountId">
+              <option [value]="null">{{ 'common.all' | translate }}</option>
+              @for (acc of accountsStore.accounts(); track acc.id) {
+                <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold mb-1">{{ 'transactions.destination_account' | translate }}</label>
+            <select class="form-select form-select-sm" formControlName="toAccountId">
+              <option [value]="null">{{ 'common.all' | translate }}</option>
+              @for (acc of accountsStore.accounts(); track acc.id) {
+                <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Récurrentes -->
+        <div class="col-md-2 d-flex align-items-end pb-1">
+          <div class="form-check mb-0">
             <input class="form-check-input" type="checkbox" formControlName="recurring" id="recCheck" />
             <label class="form-check-label small" for="recCheck">{{ 'transactions.recurring_only' | translate }}</label>
           </div>
         </div>
-        <div class="col-12 d-flex gap-2 justify-content-end">
-          <button class="btn btn-outline-secondary btn-sm" type="button" (click)="resetFilter()">{{ 'common.reset' | translate }}</button>
-          <button class="btn btn-primary btn-sm" type="button" (click)="applyFilter()">{{ 'common.filter' | translate }}</button>
+
+        <!-- Période -->
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold mb-1">{{ 'common.date' | translate }}</label>
+          <div class="d-flex align-items-center gap-2">
+            <div class="flex-fill">
+              <div class="text-muted small mb-1">Du</div>
+              <input class="form-control form-control-sm" type="date" formControlName="startDate" />
+            </div>
+            <i class="bi bi-arrow-right text-muted" style="margin-top:18px"></i>
+            <div class="flex-fill">
+              <div class="text-muted small mb-1">Au</div>
+              <input class="form-control form-control-sm" type="date" formControlName="endDate" />
+            </div>
+          </div>
         </div>
+
+        <!-- Montant -->
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold mb-1">{{ 'common.amount' | translate }}</label>
+          <div class="d-flex align-items-center gap-2">
+            <div class="flex-fill">
+              <div class="text-muted small mb-1">Min</div>
+              <div class="input-group input-group-sm">
+                <input class="form-control" type="number" formControlName="minAmount" placeholder="0" min="0" />
+                <span class="input-group-text">€</span>
+              </div>
+            </div>
+            <i class="bi bi-dash text-muted" style="margin-top:18px"></i>
+            <div class="flex-fill">
+              <div class="text-muted small mb-1">Max</div>
+              <div class="input-group input-group-sm">
+                <input class="form-control" type="number" formControlName="maxAmount" placeholder="∞" min="0" />
+                <span class="input-group-text">€</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons -->
+        <div class="col-12 d-flex gap-2 justify-content-end">
+          <button class="btn btn-outline-secondary btn-sm" type="button" (click)="resetFilter()">
+            <i class="bi bi-x-circle me-1"></i>{{ 'common.reset' | translate }}
+          </button>
+          <button class="btn btn-primary btn-sm" type="button" (click)="applyFilter()">
+            <i class="bi bi-funnel me-1"></i>{{ 'common.filter' | translate }}
+          </button>
+        </div>
+
       </form>
     </div>
   }
@@ -83,24 +154,45 @@
         <tbody>
           @for (t of store.transactions(); track t.id) {
             <tr [style.opacity]="t.hidden ? '0.45' : '1'">
-              <td class="small">{{ t.transactionDate }}</td>
+              <td class="small text-nowrap">
+                <div>{{ t.transactionDate | date:'dd/MM/yyyy' }}</div>
+                <div class="text-muted" style="font-size:0.72rem">{{ t.createdAt | date:'HH:mm' }}</div>
+              </td>
               <td>
-                <span class="badge" [class.bg-success]="t.type==='INCOME'" [class.bg-danger]="t.type==='EXPENSE'">
-                  {{ (t.type === 'INCOME' ? 'transactions.type_income' : 'transactions.type_expense') | translate }}
+                <span class="badge"
+                  [class.bg-success]="t.type==='INCOME'"
+                  [class.bg-danger]="t.type==='EXPENSE'"
+                  [class.bg-primary]="t.type==='TRANSFER'">
+                  @if (t.type === 'INCOME') { {{ 'transactions.type_income' | translate }} }
+                  @else if (t.type === 'EXPENSE') { {{ 'transactions.type_expense' | translate }} }
+                  @else { {{ 'transactions.type_transfer' | translate }} }
                 </span>
               </td>
               <td>
-                <span class="badge text-dark" [style.background]="(t.category.color ?? '#888') + '33'">
-                  {{ t.category.icon ?? '•' }} {{ t.category.name }}
-                </span>
+                @if (t.type === 'TRANSFER') {
+                  <span class="small text-muted">
+                    {{ getAccountName(t.accountId) }} → {{ getAccountName(t.destinationAccountId) }}
+                  </span>
+                } @else if (t.category) {
+                  <span class="badge text-dark" [style.background]="(t.category.color ?? '#888') + '33'">
+                    {{ t.category.icon ?? '•' }} {{ t.category.name }}
+                  </span>
+                }
               </td>
               <td class="small">{{ t.description ?? '—' }}</td>
               <td>
                 @if (t.hidden) { <span title="{{ 'transactions.hidden' | translate }}" class="text-muted">👁️‍🗨️</span> }
                 @if (t.recurring) { <span title="Récurrent">🔄</span> }
               </td>
-              <td class="text-end fw-bold" [class.text-success]="t.type==='INCOME' && !t.hidden" [class.text-danger]="t.type==='EXPENSE' && !t.hidden" [class.text-muted]="t.hidden" [style.text-decoration]="t.hidden ? 'line-through' : 'none'">
-                {{ t.type === 'INCOME' ? '+' : '-' }}{{ t.amount | currencyFormat }}
+              <td class="text-end fw-bold"
+                [class.text-success]="t.type==='INCOME' && !t.hidden"
+                [class.text-danger]="t.type==='EXPENSE' && !t.hidden"
+                [class.text-primary]="t.type==='TRANSFER' && !t.hidden"
+                [class.text-muted]="t.hidden"
+                [style.text-decoration]="t.hidden ? 'line-through' : 'none'">
+                @if (t.type === 'INCOME') { + }
+                @else if (t.type === 'EXPENSE') { - }
+                {{ t.amount | currencyFormat }}
               </td>
               <td class="text-nowrap">
                 <button class="btn btn-sm btn-outline-secondary me-1" (click)="openForm(t)" title="{{ 'common.edit' | translate }}">
@@ -168,26 +260,37 @@
               <select class="form-select" formControlName="type">
                 <option value="INCOME">{{ 'transactions.type_income' | translate }}</option>
                 <option value="EXPENSE">{{ 'transactions.type_expense' | translate }}</option>
+                <option value="TRANSFER">{{ 'transactions.type_transfer' | translate }}</option>
               </select>
             </div>
             <div class="col-md-6">
               <label class="form-label">{{ 'common.amount' | translate }}</label>
-              <input class="form-control" type="number" formControlName="amount" min="0.01" step="0.01" />
+              <input class="form-control" type="number" formControlName="amount" min="0.01" step="0.01"
+                [class.is-invalid]="insufficientFunds || (form.get('amount')?.invalid && form.get('amount')?.touched)" />
+              @if (insufficientFunds) {
+                <div class="invalid-feedback">
+                  Solde insuffisant — disponible : {{ sourceAccountBalance | currencyFormat }}
+                </div>
+              } @else if (form.get('amount')?.invalid && form.get('amount')?.touched) {
+                <div class="invalid-feedback">{{ 'transactions.validation.amount_required' | translate }}</div>
+              }
             </div>
             <div class="col-md-6">
               <label class="form-label">{{ 'transactions.transaction_date' | translate }}</label>
               <input class="form-control" type="date" formControlName="transactionDate" />
             </div>
+            @if (!isTransfer) {
+              <div class="col-md-6">
+                <label class="form-label">{{ 'common.category' | translate }}</label>
+                <select class="form-select" formControlName="categoryId">
+                  @for (cat of categoriesStore.categories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
+            }
             <div class="col-md-6">
-              <label class="form-label">{{ 'common.category' | translate }}</label>
-              <select class="form-select" formControlName="categoryId">
-                @for (cat of categoriesStore.categories(); track cat.id) {
-                  <option [value]="cat.id">{{ cat.name }}</option>
-                }
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">{{ 'transactions.account' | translate }}</label>
+              <label class="form-label">{{ isTransfer ? ('transactions.source_account' | translate) : ('transactions.account' | translate) }}</label>
               <select class="form-select" formControlName="accountId">
                 <option [value]="null">{{ 'transactions.no_account' | translate }}</option>
                 @for (acc of accountsStore.accounts(); track acc.id) {
@@ -195,6 +298,31 @@
                 }
               </select>
             </div>
+            @if (isTransfer) {
+              <div class="col-md-6">
+                <label class="form-label">{{ 'transactions.destination_account' | translate }}</label>
+                <select class="form-select" formControlName="destinationAccountId">
+                  <option [value]="null">{{ 'transactions.no_account' | translate }}</option>
+                  @for (acc of accountsStore.accounts(); track acc.id) {
+                    <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
+                  }
+                </select>
+              </div>
+            }
+            @if (showTransitAccount) {
+              <div class="col-md-6">
+                <label class="form-label">{{ 'transactions.transit_account' | translate }}</label>
+                <select class="form-select" formControlName="transitAccountId">
+                  <option [value]="null">{{ 'transactions.no_transit' | translate }}</option>
+                  @for (acc of checkingAccounts; track acc.id) {
+                    <option [value]="acc.id">{{ acc.icon ?? '🏦' }} {{ acc.name }}</option>
+                  }
+                </select>
+                <div class="form-text text-muted">
+                  {{ 'transactions.transit_hint' | translate }}
+                </div>
+              </div>
+            }
             <div class="col-md-6">
               <label class="form-label">{{ 'common.description' | translate }}</label>
               <input class="form-control" formControlName="description" />
@@ -223,7 +351,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-          <button class="btn btn-primary" (click)="submitForm()" [disabled]="form.invalid">{{ 'common.save' | translate }}</button>
+          <button class="btn btn-primary" (click)="submitForm()" [disabled]="form.invalid || insufficientFunds">{{ 'common.save' | translate }}</button>
         </div>
       </div>
     </div>

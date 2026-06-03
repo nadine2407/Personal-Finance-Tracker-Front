@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { TransactionsService } from './transactions.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Transaction, TransactionRequest, TransactionFilter, PageResponse } from '../../shared/models/transaction.model';
@@ -36,6 +37,13 @@ export class TransactionsStore {
 
   create(request: TransactionRequest): void {
     this.service.create(request).subscribe({
+      next: () => { this.notification.success('common.success_save'); this.load(); },
+      error: () => this.notification.error('common.error_save')
+    });
+  }
+
+  createTransit(transfer: TransactionRequest, expense: TransactionRequest): void {
+    forkJoin([this.service.create(transfer), this.service.create(expense)]).subscribe({
       next: () => { this.notification.success('common.success_save'); this.load(); },
       error: () => this.notification.error('common.error_save')
     });

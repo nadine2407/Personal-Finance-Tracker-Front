@@ -13,16 +13,19 @@ export class TransactionsService {
     let params = new HttpParams()
       .set('page', filter.page ?? 0)
       .set('size', filter.size ?? 10)
-      .set('sort', filter.sort ?? 'transactionDate,desc');
+      .set('sort', 'transactionDate,desc')
+      .append('sort', 'createdAt,desc');
 
-    if (filter.type) params = params.set('type', filter.type);
-    if (filter.categoryId) params = params.set('categoryId', filter.categoryId);
-    if (filter.startDate) params = params.set('startDate', filter.startDate);
-    if (filter.endDate) params = params.set('endDate', filter.endDate);
-    if (filter.minAmount != null) params = params.set('minAmount', filter.minAmount);
-    if (filter.maxAmount != null) params = params.set('maxAmount', filter.maxAmount);
-    if (filter.search) params = params.set('search', filter.search);
-    if (filter.recurring != null) params = params.set('recurring', filter.recurring);
+    if (filter.type)                  params = params.set('type', filter.type);
+    if (filter.categoryId)            params = params.set('categoryId', filter.categoryId);
+    if (filter.accountId)             params = params.set('accountId', filter.accountId);
+    if (filter.destinationAccountId)  params = params.set('destinationAccountId', filter.destinationAccountId);
+    if (filter.startDate)             params = params.set('startDate', filter.startDate);
+    if (filter.endDate)               params = params.set('endDate', filter.endDate);
+    if (filter.minAmount != null)     params = params.set('minAmount', filter.minAmount);
+    if (filter.maxAmount != null)     params = params.set('maxAmount', filter.maxAmount);
+    if (filter.search)                params = params.set('search', filter.search);
+    if (filter.recurring != null)     params = params.set('recurring', filter.recurring);
 
     return this.http.get<PageResponse<Transaction>>(this.base, { params });
   }

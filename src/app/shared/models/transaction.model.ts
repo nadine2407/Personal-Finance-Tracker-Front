@@ -1,4 +1,4 @@
-export type TransactionType = 'INCOME' | 'EXPENSE';
+export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
 export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
 
 export interface Transaction {
@@ -12,12 +12,13 @@ export interface Transaction {
     name: string;
     icon: string | null;
     color: string | null;
-  };
+  } | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
   accountId: number | null;
   accountName: string | null;
+  destinationAccountId: number | null;
   recurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
   hidden: boolean;
@@ -28,9 +29,10 @@ export interface TransactionRequest {
   amount: number;
   description: string | null;
   transactionDate: string;
-  categoryId: number;
+  categoryId: number | null;
   notes: string | null;
   accountId: number | null;
+  destinationAccountId: number | null;
   recurring: boolean;
   recurrenceFrequency: RecurrenceFrequency | null;
 }
@@ -39,6 +41,7 @@ export interface TransactionFilter {
   type?: TransactionType;
   categoryId?: number;
   accountId?: number;
+  destinationAccountId?: number;
   recurring?: boolean;
   startDate?: string;
   endDate?: string;

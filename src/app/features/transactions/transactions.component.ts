@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, DatePipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -16,6 +16,7 @@ import { Transaction, RecurrenceFrequency } from '../../shared/models/transactio
   imports: [
     ReactiveFormsModule,
     DecimalPipe,
+    DatePipe,
     TranslateModule,
     PageHeaderComponent,
     EmptyStateComponent,
@@ -43,8 +44,10 @@ export class TransactionsComponent implements OnInit {
     search: [''],
     type: [''],
     categoryId: [''],
-    startDate: [''],
-    endDate: [''],
+    fromAccountId: [null as number | null],
+    toAccountId: [null as number | null],
+    startDate: ['2026-06-01'],
+    endDate: ['2026-06-30'],
     minAmount: [null as number | null],
     maxAmount: [null as number | null],
     recurring: [false]
@@ -56,6 +59,8 @@ export class TransactionsComponent implements OnInit {
     transactionDate: ['', Validators.required],
     categoryId: [null as number | null, Validators.required],
     accountId: [null as number | null],
+    destinationAccountId: [null as number | null],
+    transitAccountId: [null as number | null],
     description: [''],
     notes: [''],
     recurring: [false],
@@ -65,23 +70,75 @@ export class TransactionsComponent implements OnInit {
   readonly frequencies: RecurrenceFrequency[] = ['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'];
 
   get isRecurring() { return this.form.get('recurring')?.value; }
+  get isTransfer() { return this.form.get('type')?.value === 'TRANSFER'; }
+
+  get showTransitAccount(): boolean {
+    if (this.form.get('type')?.value !== 'EXPENSE') return false;
+    const accountId = this.form.get('accountId')?.value;
+    if (!accountId) return false;
+    const account = this.accountsStore.accounts().find(a => a.id === +accountId);
+    return account?.type === 'SAVINGS';
+  }
+
+  get checkingAccounts() {
+    return this.accountsStore.accounts().filter(a => a.type === 'CHECKING');
+  }
+
+  get insufficientFunds(): boolean {
+    const type = this.form.get('type')?.value;
+    if (type !== 'EXPENSE' && type !== 'TRANSFER') return false;
+    const accountId = this.form.get('accountId')?.value;
+    if (!accountId) return false;
+    const amount = this.form.get('amount')?.value;
+    if (!amount || amount <= 0) return false;
+    const account = this.accountsStore.accounts().find(a => a.id === +accountId);
+    if (!account) return false;
+    return amount > account.effectiveBalance;
+  }
+
+  get sourceAccountBalance(): number | null {
+    const accountId = this.form.get('accountId')?.value;
+    if (!accountId) return null;
+    return this.accountsStore.accounts().find(a => a.id === +accountId)?.effectiveBalance ?? null;
+  }
 
   ngOnInit(): void {
-    this.store.load();
+    this.applyFilter();
     if (this.categoriesStore.categories().length === 0) {
       this.categoriesStore.load();
     }
     if (this.accountsStore.accounts().length === 0) {
       this.accountsStore.load();
     }
+    this.form.get('type')!.valueChanges.subscribe(type => {
+      const categoryCtrl = this.form.get('categoryId')!;
+      if (type === 'TRANSFER') {
+        categoryCtrl.clearValidators();
+        categoryCtrl.setValue(null);
+      } else {
+        categoryCtrl.setValidators(Validators.required);
+      }
+      categoryCtrl.updateValueAndValidity();
+    });
   }
 
+  getAccountName(id: number | null): string {
+    if (!id) return '—';
+    const acc = this.accountsStore.accounts().find(a => a.id === id);
+    return acc ? `${acc.icon ?? '🏦'} ${acc.name}` : '—';
+  }
+
+  get filterType() { return this.filterForm.get('type')?.value; }
+
   applyFilter(): void {
-    const { search, type, categoryId, startDate, endDate, minAmount, maxAmount, recurring } = this.filterForm.value;
+    const { search, type, categoryId, fromAccountId, toAccountId, startDate, endDate, minAmount, maxAmount, recurring } = this.filterForm.value;
+    const isTransfer = type === 'TRANSFER';
     this.store.applyFilter({
       search: search || undefined,
       type: (type as any) || undefined,
-      categoryId: categoryId ? +categoryId : undefined,
+      categoryId: !isTransfer && categoryId ? +categoryId : undefined,
+      accountId: isTransfer && fromAccountId ? +fromAccountId : undefined,
+      destinationAccountId: isTransfer && toAccountId ? +toAccountId : undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
       minAmount: minAmount ?? undefined,
@@ -91,8 +148,8 @@ export class TransactionsComponent implements OnInit {
   }
 
   resetFilter(): void {
-    this.filterForm.reset({ recurring: false });
-    this.store.applyFilter({});
+    this.filterForm.reset({ startDate: '2026-06-01', endDate: '2026-06-30', recurring: false });
+    this.applyFilter();
   }
 
   onPageChange(page: number): void {
@@ -111,8 +168,10 @@ export class TransactionsComponent implements OnInit {
         type: tx.type,
         amount: tx.amount,
         transactionDate: tx.transactionDate,
-        categoryId: tx.category.id,
+        categoryId: tx.category?.id ?? null,
         accountId: tx.accountId ?? null,
+        destinationAccountId: tx.destinationAccountId ?? null,
+        transitAccountId: null,
         description: tx.description ?? '',
         notes: tx.notes ?? '',
         recurring: tx.recurring ?? false,
@@ -125,6 +184,8 @@ export class TransactionsComponent implements OnInit {
         transactionDate: new Date().toISOString().split('T')[0],
         categoryId: null,
         accountId: null,
+        destinationAccountId: null,
+        transitAccountId: null,
         description: '',
         notes: '',
         recurring: false,
@@ -140,24 +201,57 @@ export class TransactionsComponent implements OnInit {
   }
 
   submitForm(): void {
-    if (this.form.invalid) return;
-    const { type, amount, transactionDate, categoryId, accountId, description, notes, recurring, recurrenceFrequency } = this.form.getRawValue();
-    const request = {
-      type: type!,
-      amount: amount!,
-      transactionDate: transactionDate!,
-      categoryId: categoryId!,
-      accountId: accountId ?? null,
-      description: description || null,
-      notes: notes || null,
-      recurring: recurring ?? false,
-      recurrenceFrequency: recurring ? recurrenceFrequency : null
-    };
+    if (this.form.invalid || this.insufficientFunds) return;
+    const { type, amount, transactionDate, categoryId, accountId, destinationAccountId, transitAccountId, description, notes, recurring, recurrenceFrequency } = this.form.getRawValue();
+
     const tx = this.editingTx();
-    if (tx) {
-      this.store.update(tx.id, request as any);
+
+    // Dépense depuis un compte Épargne avec compte de transit : 2 opérations atomiques
+    if (type === 'EXPENSE' && this.showTransitAccount && transitAccountId && !tx) {
+      this.store.createTransit(
+        {
+          type: 'TRANSFER',
+          amount: amount!,
+          transactionDate: transactionDate!,
+          categoryId: null,
+          accountId: accountId ?? null,
+          destinationAccountId: transitAccountId,
+          description: description ? `Transit – ${description}` : 'Transit',
+          notes: null,
+          recurring: false,
+          recurrenceFrequency: null
+        },
+        {
+          type: 'EXPENSE',
+          amount: amount!,
+          transactionDate: transactionDate!,
+          categoryId: categoryId ?? null,
+          accountId: transitAccountId,
+          destinationAccountId: null,
+          description: description || null,
+          notes: notes || null,
+          recurring: recurring ?? false,
+          recurrenceFrequency: recurring ? recurrenceFrequency : null
+        }
+      );
     } else {
-      this.store.create(request as any);
+      const request = {
+        type: type! as any,
+        amount: amount!,
+        transactionDate: transactionDate!,
+        categoryId: type === 'TRANSFER' ? null : (categoryId ?? null),
+        accountId: accountId ?? null,
+        destinationAccountId: type === 'TRANSFER' ? (destinationAccountId ?? null) : null,
+        description: description || null,
+        notes: notes || null,
+        recurring: recurring ?? false,
+        recurrenceFrequency: recurring ? recurrenceFrequency : null
+      };
+      if (tx) {
+        this.store.update(tx.id, request);
+      } else {
+        this.store.create(request);
+      }
     }
     this.closeModal();
   }
