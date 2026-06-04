@@ -31,6 +31,56 @@ export class TransactionsComponent implements OnInit {
   accountsStore = inject(AccountsStore);
   private fb = inject(FormBuilder);
 
+  // Format YYYY-MM pour l'input type="month"
+  private nowYearMonth(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  selectedMonthYear = signal(this.nowYearMonth());
+
+  private monthStart(ym: string): string {
+    return `${ym}-01`;
+  }
+
+  private monthEnd(ym: string): string {
+    const [y, m] = ym.split('-').map(Number);
+    const last = new Date(y, m, 0).getDate();
+    return `${ym}-${String(last).padStart(2, '0')}`;
+  }
+
+  private get currentMonthStart(): string { return this.monthStart(this.nowYearMonth()); }
+  private get currentMonthEnd(): string   { return this.monthEnd(this.nowYearMonth()); }
+
+  readonly selectedMonthLabel = (() => {
+    const labels = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    return () => {
+      const [y, m] = this.selectedMonthYear().split('-').map(Number);
+      return `${labels[m - 1]} ${y}`;
+    };
+  })();
+
+  onMonthYearChange(value: string): void {
+    this.selectedMonthYear.set(value);
+    this.filterForm.patchValue({
+      startDate: this.monthStart(value),
+      endDate:   this.monthEnd(value)
+    });
+    this.applyFilter();
+  }
+
+  prevMonth(): void {
+    const [y, m] = this.selectedMonthYear().split('-').map(Number);
+    const d = new Date(y, m - 2, 1);
+    this.onMonthYearChange(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  nextMonth(): void {
+    const [y, m] = this.selectedMonthYear().split('-').map(Number);
+    const d = new Date(y, m, 1);
+    this.onMonthYearChange(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
   showFormModal = signal(false);
   editingTx = signal<Transaction | null>(null);
   showConfirmModal = signal(false);
@@ -47,8 +97,8 @@ export class TransactionsComponent implements OnInit {
     categoryId: [''],
     fromAccountId: [null as number | null],
     toAccountId: [null as number | null],
-    startDate: [null as string | null],
-    endDate: [null as string | null],
+    startDate: [this.currentMonthStart],
+    endDate: [this.currentMonthEnd],
     minAmount: [null as number | null],
     maxAmount: [null as number | null],
     recurring: [false]
@@ -59,7 +109,7 @@ export class TransactionsComponent implements OnInit {
     amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     transactionDate: ['', Validators.required],
     categoryId: [null as number | null, Validators.required],
-    accountId: [null as number | null],
+    accountId: [null as number | null, Validators.required],
     destinationAccountId: [null as number | null],
     transitAccountId: [null as number | null],
     description: [''],
@@ -92,6 +142,15 @@ export class TransactionsComponent implements OnInit {
     if (!accountId) return false;
     const account = this.accountsStore.accounts().find(a => a.id === +accountId);
     return account?.type === 'SAVINGS';
+  }
+
+  get availableCategories() {
+    const type = this.form.get('type')?.value;
+    return this.categoriesStore.categories().filter(c => {
+      if (type === 'INCOME') return c.type === 'INCOME' || c.type === 'BOTH';
+      if (type === 'EXPENSE') return c.type === 'EXPENSE' || c.type === 'BOTH';
+      return false;
+    });
   }
 
   get checkingAccounts() {
@@ -150,18 +209,28 @@ export class TransactionsComponent implements OnInit {
 
   private updateDynamicValidators(): void {
     const categoryCtrl = this.form.get('categoryId')!;
+    const accountCtrl = this.form.get('accountId')!;
+    const destCtrl = this.form.get('destinationAccountId')!;
     const transitCtrl = this.form.get('transitAccountId')!;
     const freqCtrl = this.form.get('recurrenceFrequency')!;
     const endDateCtrl = this.form.get('recurrenceEndDate')!;
     const type = this.form.get('type')!.value;
     const recurring = this.form.get('recurring')!.value;
 
+    // Account always required
+    accountCtrl.setValidators(Validators.required);
+    accountCtrl.updateValueAndValidity({ emitEvent: false });
+
+    // Destination required for transfers
     if (type === 'TRANSFER') {
+      destCtrl.setValidators(Validators.required);
       categoryCtrl.clearValidators();
       categoryCtrl.setValue(null);
     } else {
+      destCtrl.clearValidators();
       categoryCtrl.setValidators(Validators.required);
     }
+    destCtrl.updateValueAndValidity({ emitEvent: false });
     categoryCtrl.updateValueAndValidity({ emitEvent: false });
 
     if (this.showTransitAccount) {
@@ -214,7 +283,13 @@ export class TransactionsComponent implements OnInit {
   }
 
   resetFilter(): void {
-    this.filterForm.reset({ startDate: null, endDate: null, recurring: false });
+    const ym = this.nowYearMonth();
+    this.selectedMonthYear.set(ym);
+    this.filterForm.reset({
+      startDate: this.monthStart(ym),
+      endDate:   this.monthEnd(ym),
+      recurring: false
+    });
     this.applyFilter();
   }
 

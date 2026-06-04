@@ -1,4 +1,20 @@
 <app-page-header titleKey="transactions.title">
+  <div class="d-flex align-items-center"
+       style="background:var(--surface-2);border-radius:10px;border:1px solid rgba(255,255,255,0.07);height:36px;overflow:hidden">
+    <button class="btn btn-sm border-0 px-2 h-100"
+            style="color:var(--muted);border-radius:0"
+            (click)="prevMonth()">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <span style="color:var(--ink);font-family:var(--mono);font-size:.82rem;white-space:nowrap;min-width:110px;text-align:center">
+      {{ selectedMonthLabel() }}
+    </span>
+    <button class="btn btn-sm border-0 px-2 h-100"
+            style="color:var(--muted);border-radius:0"
+            (click)="nextMonth()">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
   <button class="btn btn-primary" (click)="openForm()">
     <i class="bi bi-plus-lg me-1"></i>{{ 'transactions.add' | translate }}
   </button>
@@ -43,6 +59,7 @@
               @for (cat of categoriesStore.categories(); track cat.id) {
                 <option [value]="cat.id">{{ cat.icon ?? '' }} {{ cat.name }}</option>
               }
+              <!-- filter select uses all categories since filter has its own type -->
             </select>
           </div>
         }
@@ -283,8 +300,9 @@
               <div class="col-md-6">
                 <label class="form-label">{{ 'common.category' | translate }}</label>
                 <select class="form-select" formControlName="categoryId">
-                  @for (cat of categoriesStore.categories(); track cat.id) {
-                    <option [value]="cat.id">{{ cat.name }}</option>
+                  <option [ngValue]="null">— {{ 'common.category' | translate }} —</option>
+                  @for (cat of availableCategories; track cat.id) {
+                    <option [value]="cat.id">{{ cat.icon ?? '' }} {{ cat.name }}</option>
                   }
                 </select>
               </div>
