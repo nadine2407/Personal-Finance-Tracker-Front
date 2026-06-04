@@ -1,59 +1,126 @@
-# FinanceTrackerFront
+# Personal Finance Tracker — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+> Application web de gestion des finances personnelles — Master 1 Informatique, S2 Programmation Web 2025–2026
+>
+> **Amina YOUS · Nadine MASROUR**
 
-## Development server
+---
 
-To start a local development server, run:
+## Liens
+
+| | URL |
+|---|---|
+| Frontend (ce dépôt) | https://github.com/nadine2407/Personal-Finance-Tracker-Front |
+| Backend | https://github.com/nadine2407/Personal-Finance-Tracker-Back |
+| Application | http://localhost:4200 |
+
+---
+
+## Présentation
+
+Finance Tracker permet à un utilisateur de piloter l'ensemble de sa vie financière depuis une interface unique.
+
+**Fonctionnalités :**
+- Gestion de comptes bancaires (courant et épargne)
+- Suivi des transactions (revenus, dépenses, virements) avec récurrence mensuelle automatique
+- Catégorisation personnalisée (revenu / dépense / les deux)
+- Budgets mensuels par catégorie avec alertes visuelles (normal / alerte / dépassé / non planifié)
+- Objectifs d'épargne avec allocation, priorisation et débit vers compte courant
+- Tableau de bord analytique (statistiques mensuelles, graphique annuel, transactions récentes)
+- Transactions masquables sans suppression, notes par transaction
+- Interface en français, sécurisée par jeton d'authentification
+
+---
+
+## Lancer le projet
+
+### Prérequis
+
+| Outil | Version minimale |
+|---|---|
+| Node.js | 18+ |
+| npm | 9+ |
+
+### Démarrage
 
 ```bash
+git clone https://github.com/nadine2407/Personal-Finance-Tracker-Front.git
+cd Personal-Finance-Tracker-Front
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Application disponible sur **http://localhost:4200**
 
-## Code scaffolding
+> **Prérequis :** Le backend doit être lancé sur `http://localhost:8080` avant de démarrer le frontend.  
+> Voir : https://github.com/nadine2407/Personal-Finance-Tracker-Back
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Compte de démonstration
 
-```bash
-ng generate component component-name
+| Courriel | Mot de passe |
+|---|---|
+| `demo@gmail.app` | `demo123` |
+
+---
+
+## Stack technique
+
+| Couche | Technologie | Version |
+|---|---|---|
+| Framework | Angular — composants autonomes, signaux, chargement différé | 21.2.0 |
+| Langage | TypeScript | 5.9.2 |
+| Interface graphique | Bootstrap + Bootstrap Icons | 5.3.3 |
+| Graphiques | Chart.js + ng2-charts | 4.5.1 |
+| Traduction | @ngx-translate/core | 17.0.0 |
+| Alertes | SweetAlert2 | 11.26.25 |
+
+---
+
+## Architecture frontend
+
+```
+src/app/
+├── core/
+│   ├── guards/         auth.guard — protection des routes
+│   ├── interceptors/   auth.interceptor (token) · error.interceptor (erreurs HTTP)
+│   └── services/       auth.service · notification.service
+├── features/
+│   ├── auth/           Connexion · Inscription
+│   ├── dashboard/      Tableau de bord
+│   ├── transactions/   Gestion des transactions
+│   ├── categories/     Gestion des catégories
+│   ├── accounts/       Gestion des comptes
+│   ├── budgets/        Gestion des budgets
+│   ├── goals/          Objectifs d'épargne
+│   └── settings/       Profil · Mot de passe
+├── shared/
+│   ├── components/     stat-card · page-header · empty-state
+│   └── pipes/          currency-format
+├── layout/
+│   └── shell/          Sidebar + routeur principal
+└── data/               Interfaces TypeScript (modèles)
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+**Patterns utilisés :**
+- Stores à base de signaux Angular (sans NgRx)
+- Composants standalone avec lazy loading par feature
+- Intercepteurs HTTP fonctionnels
+- Reactive Forms avec validation dynamique
 
-```bash
-ng generate --help
-```
+---
 
-## Building
+## Pages de l'application
 
-To build the project run:
+| Page | Route | Description |
+|---|---|---|
+| Tableau de bord | `/dashboard` | Vue synthétique du mois, graphiques |
+| Transactions | `/transactions` | Liste, filtres, création, récurrence |
+| Catégories | `/categories` | Gestion des catégories personnalisées |
+| Comptes | `/accounts` | Comptes bancaires et historique |
+| Budgets | `/budgets` | Budgets mensuels par catégorie |
+| Objectifs | `/goals` | Objectifs d'épargne par compte |
+| Paramètres | `/settings` | Profil et mot de passe |
 
-```bash
-ng build
-```
+---
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+*Projet réalisé par **Amina YOUS** & **Nadine MASROUR** — Master 1 Informatique 2025–2026*
