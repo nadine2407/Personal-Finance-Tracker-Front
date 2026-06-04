@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, computed } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
-import { DecimalPipe, NgClass } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
@@ -18,7 +18,6 @@ import { DashboardStore } from './dashboard.store';
     RouterModule,
     ReactiveFormsModule,
     DecimalPipe,
-    NgClass,
     TranslateModule,
     BaseChartDirective,
     PageHeaderComponent,

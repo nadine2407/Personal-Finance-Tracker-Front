@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -15,7 +15,6 @@ import { Transaction, RecurrenceFrequency } from '../../data/transaction.model';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    DecimalPipe,
     DatePipe,
     TranslateModule,
     PageHeaderComponent,
