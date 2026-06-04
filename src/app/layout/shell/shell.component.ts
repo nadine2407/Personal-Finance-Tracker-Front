@@ -32,6 +32,6 @@ export class ShellComponent {
     const url = this.router.url.split('/')[1] ?? 'dashboard';
     if (url === 'settings') return this.translate.instant('nav.settings');
     const item = this.navItems.find(n => n.path === '/' + url);
-    return item ? this.translate.instant(item.labelKey) : 'Finance Tracker';
+    return item ? this.translate.instant(item.labelKey) : 'MyBudget';
   });
 }

@@ -1,4 +1,4 @@
-# Personal Finance Tracker — Frontend
+# MyBudget — Frontend
 
 > Application web de gestion des finances personnelles — Master 1 Informatique, S2 Programmation Web 2025–2026
 >
@@ -121,6 +121,4 @@ src/app/
 | Objectifs | `/goals` | Objectifs d'épargne par compte |
 | Paramètres | `/settings` | Profil et mot de passe |
 
----
 
-*Projet réalisé par **Amina YOUS** & **Nadine MASROUR** — Master 1 Informatique 2025–2026*
