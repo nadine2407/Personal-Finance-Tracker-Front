@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
+import { NgTemplateOutlet } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -13,6 +14,7 @@ import { Category } from '../../data/category.model';
   imports: [
     ReactiveFormsModule,
     FormsModule,
+    NgTemplateOutlet,
     TranslateModule,
     PageHeaderComponent,
     EmptyStateComponent
@@ -32,6 +34,18 @@ export class CategoriesComponent implements OnInit {
     return this.store.categories().filter(c => c.name.toLowerCase().includes(q));
   }
 
+  get incomeCategories(): Category[] {
+    return this.filteredCategories.filter(c => c.type === 'INCOME');
+  }
+
+  get expenseCategories(): Category[] {
+    return this.filteredCategories.filter(c => c.type === 'EXPENSE');
+  }
+
+  get bothCategories(): Category[] {
+    return this.filteredCategories.filter(c => c.type === 'BOTH');
+  }
+
   showFormModal = signal(false);
   editingCat = signal<Category | null>(null);
   showConfirmModal = signal(false);
@@ -40,7 +54,8 @@ export class CategoriesComponent implements OnInit {
   form = this.fb.group({
     name: ['', Validators.required],
     icon: [''],
-    color: ['#1a237e']
+    color: ['#1a237e'],
+    type: ['EXPENSE', Validators.required]
   });
 
   ngOnInit(): void {
@@ -50,9 +65,14 @@ export class CategoriesComponent implements OnInit {
   openForm(category?: Category): void {
     this.editingCat.set(category ?? null);
     if (category) {
-      this.form.patchValue({ name: category.name, icon: category.icon ?? '', color: category.color ?? '#1a237e' });
+      this.form.patchValue({
+        name: category.name,
+        icon: category.icon ?? '',
+        color: category.color ?? '#1a237e',
+        type: category.type ?? 'BOTH'
+      });
     } else {
-      this.form.reset({ name: '', icon: '', color: '#1a237e' });
+      this.form.reset({ name: '', icon: '', color: '#1a237e', type: 'EXPENSE' });
     }
     this.showFormModal.set(true);
   }
@@ -64,8 +84,13 @@ export class CategoriesComponent implements OnInit {
 
   submitForm(): void {
     if (this.form.invalid) return;
-    const { name, icon, color } = this.form.getRawValue();
-    const request = { name: name!, icon: icon || null, color: color || null };
+    const { name, icon, color, type } = this.form.getRawValue();
+    const request = {
+      name: name!,
+      icon: icon || null,
+      color: color || null,
+      type: (type as any) || 'BOTH'
+    };
     const cat = this.editingCat();
     if (cat) {
       this.store.update(cat.id, request);
